@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block title %}Admin Users - Grok Discord Bot Admin{% endblock %}
+
+{% block content %}
+<div class="card mb-6">
+  <h2>Admin Users</h2>
+  <p class="muted">Manage who can access this guild's admin panel</p>
+</div>
+
+<div class="card mb-6">
+  <h3>Add Admin User</h3>
+  <form id="add-admin-form" class="flex-row" style="gap: 12px;">
+    <div class="form-group" style="flex: 1; margin-bottom: 0; min-width: 200px;">
+      <input type="text" id="new-admin-id" placeholder="Discord User ID" required>
+    </div>
+    <button type="submit" class="btn">Add Admin</button>
+    <div id="add-status" class="muted"></div>
+  </form>
+</div>
+
+<div class="card">
+  <h3>Current Admins</h3>
+  <p class="muted">Admins for this guild</p>
+  <table id="admins-table">
+    <thead>
+      <tr>
+        <th>Discord User ID</th>
+        <th>Role</th>
+        <th>Added</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="admins-list">
+      <tr><td colspan="4" class="muted text-center">Loading...</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<script>
+async function loadAdmins() {
+  setAdminUserId();
+  if (!adminHeaders) {
+    alert("Please set your Discord user ID first");
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/guilds/{{ guild_id }}/admins`, {
+      headers: adminHeaders
+    });
+    
+    if (!res.ok) throw new Error("Failed to load admins");
+    
+    const admins = await res.json();
+    const tbody = document.getElementById("admins-list");
+    
+    if (admins.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" class="muted text-center">No admins found</td></tr>';
+      return;
+    }
+    
+    tbody.innerHTML = admins.map(admin => `
+      <tr>
+        <td>${admin.discord_user_id}</td>
+        <td>${admin.role}</td>
+        <td>${admin.created_at ? admin.created_at.substring(0, 10) : 'N/A'}</td>
+        <td>
+          <button class="btn danger" onclick="removeAdmin('${admin.discord_user_id}')">Remove</button>
+        </td>
+      </tr>
+    `).join('');
+  } catch (err) {
+    alert(`Error: ${err.message}`);
+  }
+}
+
+async function addAdmin(e) {
+  e.preventDefault();
+  setAdminUserId();
+  if (!adminHeaders) {
+    alert("Please set your Discord user ID first");
+    return;
+  }
+
+  const userId = document.getElementById("new-admin-id").value.trim();
+  if (!userId) {
+    alert("Please enter a Discord user ID");
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/guilds/{{ guild_id }}/admins`, {
+      method: "POST",
+      headers: adminHeaders,
+      body: JSON.stringify({ discord_user_id: userId })
+    });
+
+    const status = document.getElementById("add-status");
+    if (res.ok) {
+      document.getElementById("new-admin-id").value = "";
+      status.textContent = "✓ Admin added";
+      status.style.color = "var(--color-text-success)";
+      loadAdmins();
+    } else {
+      const error = await res.json();
+      status.textContent = `✗ ${error.detail || 'Error adding admin'}`;
+      status.style.color = "var(--color-text-danger)";
+    }
+    setTimeout(() => { status.textContent = ""; }, 3000);
+  } catch (err) {
+    alert(`Error: ${err.message}`);
+  }
+}
+
+async function removeAdmin(userId) {
+  if (!confirm(`Remove admin ${userId}?`)) return;
+  
+  setAdminUserId();
+  if (!adminHeaders) {
+    alert("Please set your Discord user ID first");
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/guilds/{{ guild_id }}/admins/${userId}`, {
+      method: "DELETE",
+      headers: adminHeaders
+    });
+
+    if (res.ok) {
+      loadAdmins();
+    } else {
+      const error = await res.json();
+      alert(`Error: ${error.detail || 'Failed to remove admin'}`);
+    }
+  } catch (err) {
+    alert(`Error: ${err.message}`);
+  }
+}
+
+document.getElementById("add-admin-form").addEventListener("submit", addAdmin);
+loadAdmins();
+</script>
+{% endblock %}

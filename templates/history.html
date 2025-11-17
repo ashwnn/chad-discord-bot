@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}History - Grok Discord Bot Admin{% endblock %}
+
+{% block content %}
+<div class="card mb-6">
+  <h2>Message History</h2>
+  <p class="muted">View and search all processed requests</p>
+</div>
+
+<div class="card mb-6">
+  <h3>Filters</h3>
+  <form id="filter-form" class="flex-row" style="gap: 12px; flex-wrap: wrap;">
+    <div class="form-group" style="min-width: 150px; margin-bottom: 0;">
+      <select name="status" id="status-filter">
+        <option value="">All Status</option>
+        <option value="auto_responded" {% if status_filter == 'auto_responded' %}selected{% endif %}>Auto Responded</option>
+        <option value="pending_approval" {% if status_filter == 'pending_approval' %}selected{% endif %}>Pending</option>
+        <option value="approved_grok" {% if status_filter == 'approved_grok' %}selected{% endif %}>Approved (Grok)</option>
+        <option value="approved_manual" {% if status_filter == 'approved_manual' %}selected{% endif %}>Approved (Manual)</option>
+        <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rejected</option>
+        <option value="error" {% if status_filter == 'error' %}selected{% endif %}>Error</option>
+      </select>
+    </div>
+    <div class="form-group" style="min-width: 150px; margin-bottom: 0;">
+      <select name="command_type" id="command-filter">
+        <option value="">All Types</option>
+        <option value="ask" {% if command_type_filter == 'ask' %}selected{% endif %}>!ask (Chat)</option>
+        <option value="image" {% if command_type_filter == 'image' %}selected{% endif %}>!image (Image)</option>
+      </select>
+    </div>
+    <button type="submit" class="btn" style="margin-bottom: 0;">Apply Filters</button>
+  </form>
+</div>
+
+<div class="card">
+  <table>
+    <thead>
+      <tr>
+        <th>Time</th>
+        <th>User</th>
+        <th>Type</th>
+        <th>Status</th>
+        <th>Tokens</th>
+        <th>Content</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in history %}
+      <tr style="cursor: pointer;" onclick="expandRow(this)">
+        <td>{{ row.created_at | truncate(16, True, '') }}</td>
+        <td>{{ row.user_id }}</td>
+        <td>
+          {% if row.command_type == 'ask' %}
+          <span class="pill">Chat</span>
+          {% elif row.command_type == 'image' %}
+          <span class="pill">Image</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if row.status == 'auto_responded' %}
+          <span class="pill">Responded</span>
+          {% elif row.status == 'approved_grok' %}
+          <span class="pill success">Approved</span>
+          {% elif row.status == 'approved_manual' %}
+          <span class="pill success">Manual</span>
+          {% elif row.status == 'rejected' %}
+          <span class="pill danger">Rejected</span>
+          {% elif row.status == 'pending_approval' %}
+          <span class="pill warning">Pending</span>
+          {% elif row.status == 'error' %}
+          <span class="pill danger">Error</span>
+          {% else %}
+          <span class="pill">{{ row.status }}</span>
+          {% endif %}
+        </td>
+        <td>{{ row.total_tokens or '-' }}</td>
+        <td>{{ row.user_content[:60] }}</td>
+      </tr>
+      <tr class="details-row" style="display: none;">
+        <td colspan="6">
+          <div style="padding: 16px; background: var(--color-bg-app); border-radius: 4px;">
+            <div class="grid" style="grid-template-columns: 1fr 1fr;">
+              <div>
+                <h4>Request</h4>
+                <p style="white-space: pre-wrap; word-break: break-word; font-size: 0.85rem;">{{ row.user_content }}</p>
+              </div>
+              <div>
+                <h4>Metadata</h4>
+                <p><strong>ID:</strong> {{ row.id }}</p>
+                <p><strong>Status:</strong> {{ row.status }}</p>
+                <p><strong>Decision:</strong> {{ row.decision or 'N/A' }}</p>
+                <p><strong>Tokens:</strong> {{ row.total_tokens or 'N/A' }}</p>
+              </div>
+            </div>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+      {% if history | length == 0 %}
+      <tr><td colspan="6" class="muted text-center">No history found</td></tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+document.getElementById("filter-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const status = document.getElementById("status-filter").value;
+  const type = document.getElementById("command-filter").value;
+  const params = new URLSearchParams();
+  if (status) params.append("status", status);
+  if (type) params.append("command_type", type);
+  window.location = `/guilds/{{ guild_id }}/history?${params.toString()}`;
+});
+
+function expandRow(row) {
+  const next = row.nextElementSibling;
+  if (next && next.classList.contains("details-row")) {
+    if (next.style.display === "none") {
+      next.style.display = "table-row";
+    } else {
+      next.style.display = "none";
+    }
+  }
+}
+</script>
+{% endblock %}

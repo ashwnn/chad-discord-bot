@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% block title %}Configuration - Grok Discord Bot Admin{% endblock %}
+
+{% block content %}
+<div class="card mb-6">
+  <h2>Configuration</h2>
+  <p class="muted">Edit bot behavior, limits, and system prompt</p>
+</div>
+
+<form id="config-form" class="card">
+  <h3>Rate Limits</h3>
+  <p class="muted">How frequently users can issue commands per window</p>
+  
+  <div class="grid">
+    <div class="form-group">
+      <label for="ask_window_seconds">!ask Window (seconds)</label>
+      <input type="number" id="ask_window_seconds" name="ask_window_seconds" value="{{ config.ask_window_seconds }}" min="1" required>
+    </div>
+    <div class="form-group">
+      <label for="ask_max_per_window">!ask Max per Window</label>
+      <input type="number" id="ask_max_per_window" name="ask_max_per_window" value="{{ config.ask_max_per_window }}" min="1" required>
+    </div>
+    <div class="form-group">
+      <label for="image_window_seconds">!image Window (seconds)</label>
+      <input type="number" id="image_window_seconds" name="image_window_seconds" value="{{ config.image_window_seconds }}" min="1" required>
+    </div>
+    <div class="form-group">
+      <label for="image_max_per_window">!image Max per Window</label>
+      <input type="number" id="image_max_per_window" name="image_max_per_window" value="{{ config.image_max_per_window }}" min="1" required>
+    </div>
+    <div class="form-group">
+      <label for="duplicate_window_seconds">Duplicate Check Window (seconds)</label>
+      <input type="number" id="duplicate_window_seconds" name="duplicate_window_seconds" value="{{ config.duplicate_window_seconds }}" min="1" required>
+    </div>
+  </div>
+
+  <hr style="margin: 24px 0; border: none; border-top: 1px solid var(--color-border-base);">
+
+  <h3>Daily Budgets</h3>
+  <p class="muted">Token and image limits reset daily at midnight UTC</p>
+
+  <div class="grid">
+    <div class="form-group">
+      <label for="user_daily_chat_token_limit">User Daily Chat Token Limit</label>
+      <input type="number" id="user_daily_chat_token_limit" name="user_daily_chat_token_limit" value="{{ config.user_daily_chat_token_limit }}" min="0" required>
+    </div>
+    <div class="form-group">
+      <label for="global_daily_chat_token_limit">Guild Daily Chat Token Limit</label>
+      <input type="number" id="global_daily_chat_token_limit" name="global_daily_chat_token_limit" value="{{ config.global_daily_chat_token_limit }}" min="0" required>
+    </div>
+    <div class="form-group">
+      <label for="user_daily_image_limit">User Daily Image Limit</label>
+      <input type="number" id="user_daily_image_limit" name="user_daily_image_limit" value="{{ config.user_daily_image_limit }}" min="0" required>
+    </div>
+    <div class="form-group">
+      <label for="global_daily_image_limit">Guild Daily Image Limit</label>
+      <input type="number" id="global_daily_image_limit" name="global_daily_image_limit" value="{{ config.global_daily_image_limit }}" min="0" required>
+    </div>
+  </div>
+
+  <hr style="margin: 24px 0; border: none; border-top: 1px solid var(--color-border-base);">
+
+  <h3>Auto Approval</h3>
+  <p class="muted">Require admin approval before calling Grok</p>
+
+  <div class="form-group">
+    <label class="toggle">
+      <input type="checkbox" id="auto_approve_enabled" name="auto_approve_enabled" {% if config.auto_approve_enabled %}checked{% endif %}>
+      <span class="toggle-switch"><input type="checkbox"><span class="toggle-slider"></span></span>
+      Enable auto-approve queue
+    </label>
+  </div>
+
+  <div class="form-group">
+    <label class="toggle">
+      <input type="checkbox" id="admin_bypass_auto_approve" name="admin_bypass_auto_approve" {% if config.admin_bypass_auto_approve %}checked{% endif %}>
+      <span class="toggle-switch"><input type="checkbox"><span class="toggle-slider"></span></span>
+      Admins bypass auto-approve
+    </label>
+  </div>
+
+  <hr style="margin: 24px 0; border: none; border-top: 1px solid var(--color-border-base);">
+
+  <h3>Grok Settings</h3>
+
+  <div class="grid">
+    <div class="form-group">
+      <label for="temperature">Temperature (0.0 - 2.0)</label>
+      <input type="number" id="temperature" name="temperature" value="{{ config.temperature }}" min="0" max="2" step="0.1" required>
+      <p class="muted">Lower = more focused, Higher = more creative</p>
+    </div>
+    <div class="form-group">
+      <label for="max_completion_tokens">Max Completion Tokens</label>
+      <input type="number" id="max_completion_tokens" name="max_completion_tokens" value="{{ config.max_completion_tokens }}" min="1" required>
+    </div>
+    <div class="form-group">
+      <label for="max_prompt_chars">Max Prompt Characters</label>
+      <input type="number" id="max_prompt_chars" name="max_prompt_chars" value="{{ config.max_prompt_chars }}" min="1" required>
+    </div>
+  </div>
+
+  <hr style="margin: 24px 0; border: none; border-top: 1px solid var(--color-border-base);">
+
+  <h3>System Prompt (Personality)</h3>
+  <p class="muted">Instructions for bot behavior. Avoid slurs, explicit content, and graphic violence.</p>
+
+  <div class="form-group">
+    <textarea id="system_prompt" name="system_prompt" required>{{ config.system_prompt }}</textarea>
+  </div>
+
+  <div class="flex-row" style="margin-top: 20px;">
+    <button type="submit" class="btn">Save Configuration</button>
+    <div id="config-status" class="muted"></div>
+  </div>
+</form>
+
+<script>
+document.getElementById("config-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  setAdminUserId();
+  if (!adminHeaders) {
+    alert("Please set your Discord user ID first");
+    return;
+  }
+  
+  const formData = new FormData(e.target);
+  const payload = {};
+  
+  formData.forEach((value, key) => {
+    if (key === "auto_approve_enabled" || key === "admin_bypass_auto_approve") {
+      payload[key] = formData.getAll(key).length > 0;
+    } else if (!isNaN(value) && value !== "") {
+      payload[key] = Number(value);
+    } else {
+      payload[key] = value;
+    }
+  });
+
+  const res = await fetch(`/api/guilds/{{ guild_id }}/config`, {
+    method: "POST",
+    headers: adminHeaders,
+    body: JSON.stringify(payload),
+  });
+
+  const status = document.getElementById("config-status");
+  if (res.ok) {
+    status.textContent = "✓ Configuration saved";
+    status.style.color = "var(--color-text-success)";
+  } else {
+    status.textContent = "✗ Error saving configuration";
+    status.style.color = "var(--color-text-danger)";
+  }
+  setTimeout(() => { status.textContent = ""; }, 3000);
+});
+</script>
+{% endblock %}

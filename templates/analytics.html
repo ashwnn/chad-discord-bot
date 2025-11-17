@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}Analytics - Grok Discord Bot Admin{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="card mb-6">
+  <h2>Analytics</h2>
+  <p class="muted">Guild usage and request breakdown</p>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h3>Total Requests</h3>
+    <p style="font-size: 1.875rem; font-weight: 700; margin: 16px 0;">{{ analytics.status_counts.values() | sum(attribute=0) | default(0) }}</p>
+    <p class="muted">All time</p>
+  </div>
+
+  <div class="card">
+    <h3>Total Tokens Used</h3>
+    <p style="font-size: 1.875rem; font-weight: 700; margin: 16px 0;">{{ analytics.token_total | default(0) }}</p>
+    <p class="muted">Chat token consumption</p>
+  </div>
+
+  <div class="card">
+    <h3>Image Requests</h3>
+    <p style="font-size: 1.875rem; font-weight: 700; margin: 16px 0;">{{ analytics.image_requests | default(0) }}</p>
+    <p class="muted">Total generated</p>
+  </div>
+</div>
+
+<div class="grid" style="grid-template-columns: 1fr 1fr;">
+  <div class="card">
+    <h3>Status Breakdown</h3>
+    <canvas id="statusChart" style="max-height: 300px;"></canvas>
+  </div>
+
+  <div class="card">
+    <h3>Status Summary</h3>
+    <ul style="margin: 0; padding: 0; list-style: none;">
+      {% set statuses = [
+        ('auto_responded', 'Responded Automatically', 'blue'),
+        ('approved_grok', 'Approved via Grok', 'green'),
+        ('approved_manual', 'Approved Manually', 'green'),
+        ('rejected', 'Rejected', 'red'),
+        ('pending_approval', 'Pending Review', 'yellow'),
+        ('error', 'Errors', 'red'),
+      ] %}
+      {% for key, label, color in statuses %}
+      <li style="padding: 10px 0; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--color-border-base);">
+        <span>
+          {% if color == 'blue' %}
+          <span class="pill">{{ label }}</span>
+          {% elif color == 'green' %}
+          <span class="pill success">{{ label }}</span>
+          {% elif color == 'yellow' %}
+          <span class="pill warning">{{ label }}</span>
+          {% elif color == 'red' %}
+          <span class="pill danger">{{ label }}</span>
+          {% endif %}
+        </span>
+        <strong>{{ analytics.status_counts.get(key, 0) }}</strong>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+
+<script>
+// Status breakdown chart
+const ctx = document.getElementById('statusChart').getContext('2d');
+const statusLabels = [
+  'Responded',
+  'Approved (Grok)',
+  'Approved (Manual)',
+  'Rejected',
+  'Pending',
+  'Errors'
+];
+const statusData = [
+  {{ analytics.status_counts.get('auto_responded', 0) }},
+  {{ analytics.status_counts.get('approved_grok', 0) }},
+  {{ analytics.status_counts.get('approved_manual', 0) }},
+  {{ analytics.status_counts.get('rejected', 0) }},
+  {{ analytics.status_counts.get('pending_approval', 0) }},
+  {{ analytics.status_counts.get('error', 0) }}
+];
+
+new Chart(ctx, {
+  type: 'doughnut',
+  data: {
+    labels: statusLabels,
+    datasets: [{
+      data: statusData,
+      backgroundColor: [
+        '#2563eb',
+        '#16a34a',
+        '#10b981',
+        '#dc2626',
+        '#f59e0b',
+        '#ef4444'
+      ],
+      borderColor: '#ffffff',
+      borderWidth: 2
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: true,
+    plugins: {
+      legend: {
+        position: 'bottom'
+      }
+    }
+  }
+});
+</script>
+{% endblock %}

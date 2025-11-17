@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}Overview - Grok Discord Bot Admin{% endblock %}
+
+{% block content %}
+<div class="card">
+  <h2>Overview</h2>
+  <p class="muted">Guild status and quick stats for today</p>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h3>Auto Approve Status</h3>
+    <p>
+      {% if config.auto_approve_enabled %}
+      <span class="pill success">Enabled</span>
+      {% else %}
+      <span class="pill">Disabled</span>
+      {% endif %}
+    </p>
+    <p class="muted">
+      {% if config.auto_approve_enabled %}
+      New requests will require admin approval before Grok is called.
+      {% if config.admin_bypass_auto_approve %}
+      Admins can bypass this.
+      {% endif %}
+      {% else %}
+      Requests are processed directly without approval.
+      {% endif %}
+    </p>
+  </div>
+
+  <div class="card">
+    <h3>Today's Chat Tokens</h3>
+    <p style="font-size: 1.5rem; font-weight: 700;">{{ usage.guild.chat_tokens_used }} <span style="font-size: 1rem; color: var(--color-text-muted);">/ {{ config.global_daily_chat_token_limit }}</span></p>
+    <div style="background: var(--color-bg-app); border-radius: 4px; height: 8px; margin-top: 8px; overflow: hidden;">
+      <div style="background: var(--color-blue-500); height: 100%; {% set pct = (usage.guild.chat_tokens_used / config.global_daily_chat_token_limit * 100) | round %}width: {{ pct }}%;"></div>
+    </div>
+    <p class="muted">Guild daily limit</p>
+  </div>
+
+  <div class="card">
+    <h3>Today's Images</h3>
+    <p style="font-size: 1.5rem; font-weight: 700;">{{ usage.guild.images_generated }} <span style="font-size: 1rem; color: var(--color-text-muted);">/ {{ config.global_daily_image_limit }}</span></p>
+    <div style="background: var(--color-bg-app); border-radius: 4px; height: 8px; margin-top: 8px; overflow: hidden;">
+      <div style="background: var(--color-green-500); height: 100%; {% set img_pct = (usage.guild.images_generated / config.global_daily_image_limit * 100) | round %}width: {{ img_pct }}%;"></div>
+    </div>
+    <p class="muted">Guild daily limit</p>
+  </div>
+
+  <div class="card">
+    <h3>Pending Approvals</h3>
+    <p style="font-size: 1.5rem; font-weight: 700;">{{ pending | length }}</p>
+    <a href="/guilds/{{ guild_id }}/queue" class="btn" style="margin-top: 8px;">Review Queue</a>
+  </div>
+
+  <div class="card">
+    <h3>Lifetime Usage</h3>
+    <p>Total tokens: <strong>{{ analytics.token_total }}</strong></p>
+    <p>Image requests: <strong>{{ analytics.image_requests }}</strong></p>
+  </div>
+
+  <div class="card">
+    <h3>Status Breakdown</h3>
+    <ul style="margin: 0; padding: 0; list-style: none;">
+      {% set statuses = [('auto_responded', 'Auto Responded'), ('approved_grok', 'Approved (Grok)'), ('approved_manual', 'Approved (Manual)'), ('rejected', 'Rejected'), ('pending_approval', 'Pending'), ('error', 'Error')] %}
+      {% for key, label in statuses %}
+      <li style="padding: 6px 0; display: flex; justify-content: space-between;">
+        <span>{{ label }}:</span>
+        <strong>{{ analytics.status_counts.get(key, 0) }}</strong>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Recent Activity</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Time</th>
+        <th>User</th>
+        <th>Type</th>
+        <th>Status</th>
+        <th>Content</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in recent %}
+      <tr>
+        <td>{{ row.created_at | truncate(16, True, '') }}</td>
+        <td>{{ row.user_id }}</td>
+        <td>{{ row.command_type }}</td>
+        <td>
+          {% if row.status == 'auto_responded' %}
+          <span class="pill">Responded</span>
+          {% elif row.status == 'approved_grok' %}
+          <span class="pill success">Approved</span>
+          {% elif row.status == 'approved_manual' %}
+          <span class="pill success">Manual</span>
+          {% elif row.status == 'rejected' %}
+          <span class="pill danger">Rejected</span>
+          {% elif row.status == 'pending_approval' %}
+          <span class="pill warning">Pending</span>
+          {% else %}
+          <span class="pill">{{ row.status }}</span>
+          {% endif %}
+        </td>
+        <td>{{ row.user_content[:80] }}</td>
+      </tr>
+      {% endfor %}
+      {% if recent | length == 0 %}
+      <tr><td colspan="5" class="muted text-center">No activity yet</td></tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

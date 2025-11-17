@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Grok Discord Bot Admin{% endblock %}</title>
+  <link rel="stylesheet" href="/static/style.css">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <div class="page-wrapper">
+    <header>
+      <div class="header-content">
+        <h1 class="brand">GrokBot Admin</h1>
+        {% if guild_id %}
+        <span class="muted">Guild: {{ guild_id }}</span>
+        {% endif %}
+      </div>
+      <nav>
+        {% if guild_id %}
+        <a href="/guilds/{{ guild_id }}">Dashboard</a>
+        {% endif %}
+        <a href="/">Guilds</a>
+      </nav>
+      <button class="nav-toggle" onclick="toggleSidebar()" title="Toggle menu">☰</button>
+    </header>
+
+    {% if guild_id %}
+    <aside id="sidebar">
+      <nav>
+        <a href="/guilds/{{ guild_id }}" class="{% if page == 'dashboard' %}active{% endif %}">Overview</a>
+        <a href="/guilds/{{ guild_id }}/config" class="{% if page == 'config' %}active{% endif %}">Configuration</a>
+        <a href="/guilds/{{ guild_id }}/queue" class="{% if page == 'queue' %}active{% endif %}">Approval Queue</a>
+        <a href="/guilds/{{ guild_id }}/history" class="{% if page == 'history' %}active{% endif %}">History</a>
+        <a href="/guilds/{{ guild_id }}/analytics" class="{% if page == 'analytics' %}active{% endif %}">Analytics</a>
+        <a href="/guilds/{{ guild_id }}/admins" class="{% if page == 'admins' %}active{% endif %}">Admin Users</a>
+      </nav>
+    </aside>
+    {% endif %}
+
+    <main>
+      <div class="container">
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const adminUserId = localStorage.getItem("adminUserId") || "";
+    if (adminUserId) {
+      window.adminHeaders = {"Content-Type": "application/json", "X-Discord-User-ID": adminUserId};
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById("sidebar");
+      if (sidebar) {
+        sidebar.classList.toggle("hidden");
+      }
+    }
+
+    function setAdminUserId() {
+      if (!adminUserId) {
+        const userId = prompt("Enter your Discord user ID for admin actions:");
+        if (userId) {
+          localStorage.setItem("adminUserId", userId);
+          location.reload();
+        }
+      }
+    }
+  </script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

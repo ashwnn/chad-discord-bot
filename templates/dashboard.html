@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="grid">
+  <div class="card">
+    <h2>Configuration</h2>
+    <p class="muted">Edit rates, budgets, and the system prompt.</p>
+    <form id="config-form">
+      <div class="flex-row">
+        <label>Auto approve</label>
+        <input type="checkbox" name="auto_approve_enabled" {% if config.auto_approve_enabled %}checked{% endif %}>
+      </div>
+      <div class="flex-row">
+        <label>Admins bypass</label>
+        <input type="checkbox" name="admin_bypass_auto_approve" {% if config.admin_bypass_auto_approve %}checked{% endif %}>
+      </div>
+      <div class="grid">
+        <label>Ask window (s)
+          <input type="number" name="ask_window_seconds" value="{{ config.ask_window_seconds }}">
+        </label>
+        <label>Ask max / window
+          <input type="number" name="ask_max_per_window" value="{{ config.ask_max_per_window }}">
+        </label>
+        <label>Image window (s)
+          <input type="number" name="image_window_seconds" value="{{ config.image_window_seconds }}">
+        </label>
+        <label>Image max / window
+          <input type="number" name="image_max_per_window" value="{{ config.image_max_per_window }}">
+        </label>
+        <label>Duplicate window (s)
+          <input type="number" name="duplicate_window_seconds" value="{{ config.duplicate_window_seconds }}">
+        </label>
+        <label>User daily chat tokens
+          <input type="number" name="user_daily_chat_token_limit" value="{{ config.user_daily_chat_token_limit }}">
+        </label>
+        <label>Guild daily chat tokens
+          <input type="number" name="global_daily_chat_token_limit" value="{{ config.global_daily_chat_token_limit }}">
+        </label>
+        <label>User daily images
+          <input type="number" name="user_daily_image_limit" value="{{ config.user_daily_image_limit }}">
+        </label>
+        <label>Guild daily images
+          <input type="number" name="global_daily_image_limit" value="{{ config.global_daily_image_limit }}">
+        </label>
+        <label>Temperature
+          <input type="number" step="0.1" name="temperature" value="{{ config.temperature }}">
+        </label>
+        <label>Max completion tokens
+          <input type="number" name="max_completion_tokens" value="{{ config.max_completion_tokens }}">
+        </label>
+      </div>
+      <label>System prompt
+        <textarea name="system_prompt" rows="4">{{ config.system_prompt }}</textarea>
+      </label>
+      <button class="btn" type="submit">Save config</button>
+      <div id="config-status" class="muted"></div>
+    </form>
+  </div>
+  <div class="card">
+    <h2>Usage today</h2>
+    <p class="muted">Chat tokens and images roll over daily.</p>
+    <p>Guild chat tokens: {{ usage.guild.chat_tokens_used }} / {{ config.global_daily_chat_token_limit }}</p>
+    <p>Guild images: {{ usage.guild.images_generated }} / {{ config.global_daily_image_limit }}</p>
+    <p>Total tokens lifetime: {{ analytics.token_total }}</p>
+  </div>
+  <div class="card">
+    <h2>Analytics</h2>
+    <p class="muted">Status counts</p>
+    <ul>
+      {% for key, value in analytics.status_counts.items() %}
+        <li>{{ key }}: {{ value }}</li>
+      {% endfor %}
+      {% if analytics.status_counts|length == 0 %}<li class="muted">No data yet.</li>{% endif %}
+    </ul>
+    <p class="muted">Image requests: {{ analytics.image_requests }}</p>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Pending approval</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Time</th>
+        <th>User</th>
+        <th>Type</th>
+        <th>Preview</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in pending %}
+      <tr data-id="{{ item.id }}">
+        <td>{{ item.created_at }}</td>
+        <td>{{ item.user_id }}</td>
+        <td>{{ item.command_type }}</td>
+        <td>{{ item.user_content[:80] }}</td>
+        <td class="flex-row">
+          <button class="btn" onclick="approve({{ item.id }}, 'grok')">Approve</button>
+          <button class="btn secondary" onclick="manual({{ item.id }})">Manual</button>
+          <button class="btn danger" onclick="reject({{ item.id }})">Reject</button>
+        </td>
+      </tr>
+      {% endfor %}
+      {% if pending|length == 0 %}
+      <tr><td colspan="5" class="muted">No pending items.</td></tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h2>Recent history</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Time</th>
+        <th>User</th>
+        <th>Type</th>
+        <th>Status</th>
+        <th>Prompt</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in recent %}
+      <tr>
+        <td>{{ row.created_at }}</td>
+        <td>{{ row.user_id }}</td>
+        <td>{{ row.command_type }}</td>
+        <td><span class="pill">{{ row.status }}</span></td>
+        <td>{{ row.user_content[:120] }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+const guildId = "{{ guild_id }}";
+const adminUserId = localStorage.getItem("adminUserId") || prompt("Enter your Discord user id for admin actions") || "";
+if (adminUserId) {
+  localStorage.setItem("adminUserId", adminUserId);
+}
+
+document.getElementById("config-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const formData = new FormData(e.target);
+  const payload = {};
+  formData.forEach((value, key) => {
+    if (value === "on") {
+      payload[key] = true;
+    } else if (!isNaN(Number(value))) {
+      payload[key] = Number(value);
+    } else {
+      payload[key] = value;
+    }
+  });
+  payload.auto_approve_enabled = formData.get("auto_approve_enabled") === "on";
+  payload.admin_bypass_auto_approve = formData.get("admin_bypass_auto_approve") === "on";
+  const res = await fetch(`/api/guilds/${guildId}/config`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json", "X-Discord-User-ID": adminUserId},
+    body: JSON.stringify(payload),
+  });
+  const status = document.getElementById("config-status");
+  status.textContent = res.ok ? "Saved" : "Error saving config";
+});
+
+async function approve(id, decision) {
+  const body = {decision};
+  if (decision === "reject") {
+    body.reason = prompt("Reason?") || "Request rejected.";
+  }
+  if (decision === "manual") {
+    body.manual_reply_content = prompt("Manual reply") || "Admin reply.";
+  }
+  const res = await fetch(`/api/approvals/${id}`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json", "X-Discord-User-ID": adminUserId},
+    body: JSON.stringify(body),
+  });
+  if (res.ok) {
+    location.reload();
+  } else {
+    alert("Failed to update");
+  }
+}
+
+function reject(id) { approve(id, "reject"); }
+function manual(id) { approve(id, "manual"); }
+</script>
+{% endblock %}

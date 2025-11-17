@@ -1,0 +1,52 @@
+services:
+  web:
+    build: .
+    image: grok-discord-bot:latest
+    container_name: grok-bot-web
+    env_file: .env
+    environment:
+      - DATABASE_PATH=/data/grok_bot.sqlite3
+      - PYTHONPATH=/app/src
+    ports:
+      - "${WEB_PORT:-8000}:${WEB_PORT:-8000}"
+    volumes:
+      - ./data:/data
+      - ./templates:/app/templates:ro
+      - ./static:/app/static:ro
+      - ./src:/app/src:ro
+    command: sh -c "python -m grok_bot.web"
+    restart: unless-stopped
+    networks:
+      - apps
+    healthcheck:
+      test: ["CMD", "sh", "-c", "curl -f http://localhost:${WEB_PORT:-8000}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  bot:
+    build: .
+    image: grok-discord-bot:latest
+    container_name: grok-bot
+    env_file: .env
+    environment:
+      - DATABASE_PATH=/data/grok_bot.sqlite3
+      - PYTHONPATH=/app/src
+    volumes:
+      - ./data:/data
+      - ./src:/app/src:ro
+    command: sh -c "python -m grok_bot.bot"
+    depends_on:
+      - web
+    restart: unless-stopped
+    networks:
+      - apps
+    healthcheck:
+      test: ["CMD", "sh", "-c", "ps aux | grep -v grep | grep -q 'grok_bot' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  apps:
+    external: true

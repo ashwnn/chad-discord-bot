@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}Approval Queue - Grok Discord Bot Admin{% endblock %}
+
+{% block content %}
+<div class="card mb-6">
+  <h2>Approval Queue</h2>
+  <p class="muted">Review and approve pending requests</p>
+</div>
+
+{% if pending | length == 0 %}
+<div class="card">
+  <p class="muted text-center">No pending approvals</p>
+</div>
+{% else %}
+<div class="card">
+  <table>
+    <thead>
+      <tr>
+        <th>Time</th>
+        <th>User</th>
+        <th>Type</th>
+        <th>Preview</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in pending %}
+      <tr data-id="{{ item.id }}">
+        <td>{{ item.created_at | truncate(16, True, '') }}</td>
+        <td>{{ item.user_id }}</td>
+        <td>
+          {% if item.command_type == 'ask' %}
+          <span class="pill">Chat</span>
+          {% elif item.command_type == 'image' %}
+          <span class="pill">Image</span>
+          {% endif %}
+        </td>
+        <td title="{{ item.user_content }}">{{ item.user_content[:80] }}</td>
+        <td>
+          <div class="flex-row" style="gap: 4px;">
+            <button class="btn" onclick="expand(this)">Details</button>
+          </div>
+        </td>
+      </tr>
+      <tr id="details-{{ item.id }}" style="display: none;">
+        <td colspan="5">
+          <div style="padding: 16px; background: var(--color-bg-app); border-radius: 4px;">
+            <h4>Full Request</h4>
+            <p style="white-space: pre-wrap; word-break: break-word;">{{ item.user_content }}</p>
+            
+            <div class="btn-group" style="margin-top: 16px;">
+              <button class="btn success" onclick="approve({{ item.id }}, 'grok')">Approve via Grok</button>
+              <button class="btn secondary" onclick="manual({{ item.id }})">Approve with Manual Reply</button>
+              <button class="btn danger" onclick="reject({{ item.id }})">Reject</button>
+            </div>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<script>
+function expand(button) {
+  const row = button.closest('tr');
+  const id = row.dataset.id;
+  const detailsRow = document.getElementById(`details-${id}`);
+  if (detailsRow.style.display === 'none') {
+    detailsRow.style.display = 'table-row';
+    button.textContent = 'Hide';
+  } else {
+    detailsRow.style.display = 'none';
+    button.textContent = 'Details';
+  }
+}
+
+async function approve(id, decision) {
+  setAdminUserId();
+  if (!adminHeaders) {
+    alert("Please set your Discord user ID first");
+    return;
+  }
+
+  const body = { decision };
+  
+  if (decision === "reject") {
+    body.reason = prompt("Reason for rejection (optional):") || undefined;
+  }
+  
+  if (decision === "manual") {
+    body.manual_reply_content = prompt("Enter your manual reply:") || "";
+    if (!body.manual_reply_content) {
+      alert("Manual reply cannot be empty");
+      return;
+    }
+  }
+
+  try {
+    const res = await fetch(`/api/approvals/${id}`, {
+      method: "POST",
+      headers: adminHeaders,
+      body: JSON.stringify(body),
+    });
+    
+    if (res.ok) {
+      location.reload();
+    } else {
+      const error = await res.json();
+      alert(`Error: ${error.detail || 'Failed to process approval'}`);
+    }
+  } catch (err) {
+    alert(`Error: ${err.message}`);
+  }
+}
+
+function reject(id) { approve(id, "reject"); }
+function manual(id) { approve(id, "manual"); }
+</script>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Guilds - Grok Discord Bot Admin{% endblock %}
+
+{% block content %}
+<div class="card">
+  <h2>Welcome to Grok Admin</h2>
+  <p class="muted">Configure and manage your Discord guild's Grok bot instance</p>
+  
+  {% if guilds %}
+  <h3>Your Guilds</h3>
+  <ul style="list-style: none; padding: 0; margin: 0;">
+    {% for guild_id in guilds %}
+    <li style="margin-bottom: 10px;">
+      <a href="/guilds/{{ guild_id }}" class="btn">Guild {{ guild_id }}</a>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <h3>Getting Started</h3>
+  <ol>
+    <li>Add the bot to your Discord guild</li>
+    <li>Run the bot once in your guild to create a configuration</li>
+    <li>Grant yourself admin rights in the database:
+      <code style="background: var(--color-bg-app); padding: 4px 8px; border-radius: 4px;">
+        sqlite3 grok_bot.sqlite3 "INSERT OR IGNORE INTO admin_users (discord_user_id, guild_id) VALUES ('YOUR_ID', 'GUILD_ID');"
+      </code>
+    </li>
+    <li>Refresh this page to see your guild</li>
+  </ol>
+  <p class="muted">Need help? Check the README.md for more information.</p>
+  {% endif %}
+</div>
+{% endblock %}
