@@ -149,12 +149,14 @@ class Database:
                 error_code TEXT,
                 error_detail TEXT,
                 created_at TEXT DEFAULT (datetime('now')),
-                responded_at TEXT
+                responded_at TEXT,
+                deleted_at TEXT
             );
             """
         )
         await self._ensure_column("guild_config", "duplicate_window_seconds INTEGER DEFAULT 60")
         await self._ensure_column("guild_config", "admin_user_ids TEXT DEFAULT ''")
+        await self._ensure_column("message_log", "deleted_at TEXT")
         await self.conn.commit()
 
     async def _ensure_column(self, table: str, column_def: str) -> None:
@@ -549,6 +551,19 @@ class Database:
         ) as cur:
             row = await cur.fetchone()
             return int(row["count"] if row else 0)
+
+    async def mark_message_deleted(self, message_id: int) -> None:
+        """Mark a message as deleted from Discord (keeps database record)."""
+        async with self._lock:
+            await self.conn.execute(
+                """
+                UPDATE message_log
+                SET deleted_at = datetime('now')
+                WHERE id = ?;
+                """,
+                (message_id,),
+            )
+            await self.conn.commit()
 
     async def delete_guild(self, guild_id: str) -> None:
         """Delete all guild configuration and history from database."""

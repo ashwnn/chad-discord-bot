@@ -354,6 +354,30 @@ def create_app(settings: Settings) -> FastAPI:
             return {"status": "rejected", "reply": formatted_rejection}
         raise HTTPException(status_code=400, detail="Invalid decision")
 
+    @app.delete("/api/messages/{message_id}")
+    async def delete_message_endpoint(message_id: int):
+        """Delete a message from Discord (keeps database record for history)."""
+        message = await db.get_message(message_id)
+        if not message:
+            raise HTTPException(status_code=404, detail="Message not found")
+        
+        if not message["discord_message_id"]:
+            raise HTTPException(status_code=400, detail="Message has no Discord message ID")
+        
+        # Delete from Discord
+        success = await discord_api.delete_message(
+            channel_id=message["channel_id"],
+            message_id=message["discord_message_id"],
+        )
+        
+        if not success:
+            raise HTTPException(status_code=502, detail="Failed to delete message from Discord")
+        
+        # Mark as deleted in database
+        await db.mark_message_deleted(message_id)
+        
+        return {"status": "deleted", "message_id": message_id}
+
     @app.get("/health")
     async def health():
         return {"ok": True}

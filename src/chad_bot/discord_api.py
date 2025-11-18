@@ -75,3 +75,33 @@ class DiscordApiClient:
                 logger.error("Failed sending message to Discord: %s - %s", resp.status_code, resp.text)
             resp.raise_for_status()
             return resp.json()
+
+    async def delete_message(self, channel_id: str, message_id: str) -> bool:
+        """Delete a message from Discord.
+        
+        Args:
+            channel_id: Discord channel ID
+            message_id: Discord message ID
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        if not self.token:
+            logger.warning("Discord token missing, skipping delete")
+            return False
+        
+        async with httpx.AsyncClient(base_url=self.base_url, timeout=15.0) as client:
+            try:
+                resp = await client.delete(
+                    f"/channels/{channel_id}/messages/{message_id}",
+                    headers={"Authorization": f"Bot {self.token}"},
+                )
+                if resp.status_code >= 400:
+                    logger.error("Failed deleting message from Discord: %s - %s", resp.status_code, resp.text)
+                    return False
+                resp.raise_for_status()
+                logger.info("Successfully deleted message %s from channel %s", message_id, channel_id)
+                return True
+            except Exception as exc:  # noqa: BLE001
+                logger.error("Error deleting message %s: %s", message_id, exc)
+                return False
