@@ -12,75 +12,48 @@
     <!-- Header -->
     <header class="main-header">
       <div class="header-left">
-        <h1 class="brand">Chad Bot Admin</h1>
+        <a href="/" class="brand-link" aria-label="Go to dashboard">
+          <h1 class="brand">ChatBot Admin</h1>
+        </a>
         {% if guild_id %}
         <span class="guild-badge">Guild: {{ guild_id }}</span>
         {% endif %}
       </div>
-      <button class="nav-toggle" onclick="toggleSidebar()" title="Toggle menu">☰</button>
+      <button class="nav-toggle" onclick="toggleNav()" title="Toggle menu">☰</button>
+      <nav id="main-nav" class="main-nav">
+        {% if guild_id %}
+        <a href="/" class="nav-link">All Guilds</a>
+        <a href="/guilds/{{ guild_id }}" class="nav-link {% if page == 'dashboard' %}active{% endif %}">
+          Overview
+        </a>
+        <a href="/guilds/{{ guild_id }}/config" class="nav-link {% if page == 'config' %}active{% endif %}">
+          Configuration
+        </a>
+        <a href="/guilds/{{ guild_id }}/admins" class="nav-link {% if page == 'admins' %}active{% endif %}">
+          Admin Users
+        </a>
+        <a href="/guilds/{{ guild_id }}/queue" class="nav-link {% if page == 'queue' %}active{% endif %}">
+          Approval Queue
+        </a>
+        <a href="/guilds/{{ guild_id }}/history" class="nav-link {% if page == 'history' %}active{% endif %}">
+          History
+        </a>
+        <a href="/guilds/{{ guild_id }}/analytics" class="nav-link {% if page == 'analytics' %}active{% endif %}">
+          Analytics
+        </a>
+        {% else %}
+        <a href="/" class="nav-link {% if page == 'dashboard' %}active{% endif %}">Guilds</a>
+        <a href="/messages" class="nav-link {% if page == 'messages' %}active{% endif %}">Bot Messages</a>
+        {% endif %}
+      </nav>
     </header>
 
-    <div class="layout-container">
-      <!-- Sidebar Navigation -->
-      {% if guild_id %}
-      <aside id="sidebar" class="sidebar">
-        <nav class="sidebar-nav">
-          <div class="nav-group">
-            <h3 class="nav-group-title">Navigation</h3>
-            <a href="/" class="nav-link">← Back to Guilds</a>
-          </div>
-          
-          <div class="nav-group">
-            <h3 class="nav-group-title">Guild Management</h3>
-            <a href="/guilds/{{ guild_id }}" class="nav-link {% if page == 'dashboard' %}active{% endif %}">
-              Overview
-            </a>
-            <a href="/guilds/{{ guild_id }}/config" class="nav-link {% if page == 'config' %}active{% endif %}">
-              Configuration
-            </a>
-            <a href="/guilds/{{ guild_id }}/admins" class="nav-link {% if page == 'admins' %}active{% endif %}">
-              Admin Users
-            </a>
-          </div>
-
-          <div class="nav-group">
-            <h3 class="nav-group-title">Workflow</h3>
-            <a href="/guilds/{{ guild_id }}/queue" class="nav-link {% if page == 'queue' %}active{% endif %}">
-              Approval Queue
-            </a>
-            <a href="/guilds/{{ guild_id }}/history" class="nav-link {% if page == 'history' %}active{% endif %}">
-              History
-            </a>
-          </div>
-
-          <div class="nav-group">
-            <h3 class="nav-group-title">Insights</h3>
-            <a href="/guilds/{{ guild_id }}/analytics" class="nav-link {% if page == 'analytics' %}active{% endif %}">
-              Analytics
-            </a>
-          </div>
-        </nav>
-      </aside>
-      {% else %}
-      <aside id="sidebar" class="sidebar">
-        <nav class="sidebar-nav">
-          <div class="nav-group">
-            <h3 class="nav-group-title">Global</h3>
-            <a href="/messages" class="nav-link {% if page == 'messages' %}active{% endif %}">
-              Bot Messages
-            </a>
-          </div>
-        </nav>
-      </aside>
-      {% endif %}
-
-      <!-- Main Content -->
-      <main class="main-content">
-        <div class="container">
-          {% block content %}{% endblock %}
-        </div>
-      </main>
-    </div>
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="container">
+        {% block content %}{% endblock %}
+      </div>
+    </main>
   </div>
 
   <script>
@@ -89,10 +62,10 @@
       window.adminHeaders = {"Content-Type": "application/json", "X-Discord-User-ID": adminUserId};
     }
 
-    function toggleSidebar() {
-      const sidebar = document.getElementById("sidebar");
-      if (sidebar) {
-        sidebar.classList.toggle("hidden");
+    function toggleNav() {
+      const nav = document.getElementById("main-nav");
+      if (nav) {
+        nav.classList.toggle("open");
       }
     }
 
