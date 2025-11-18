@@ -5,7 +5,18 @@ from typing import Optional
 from .yaml_config import YAMLConfig
 
 
+# Pre-compiled regex patterns for improved performance
 TRIVIAL_STRINGS = {"hi", "hello", "test", "ping"}
+PATTERN_NON_ALPHA = re.compile(r"[^a-z]")
+PATTERN_REPEATING = re.compile(r"^([a-z]{1,4})\1{2,}$")
+KEYBOARD_ROWS = [
+    "qwertyuiop",
+    "asdfghjkl",
+    "zxcvbnm",
+    "1234567890"
+]
+# Pre-compile keyboard row patterns for efficient matching
+KEYBOARD_PATTERNS = [re.compile(re.escape(row[i:i+4])) for row in KEYBOARD_ROWS for i in range(len(row) - 3)]
 
 @dataclass
 class ValidationResult:
@@ -20,7 +31,7 @@ def _looks_gibberish(text: str) -> bool:
     Returns True if text appears to be nonsense/spam.
     """
     text_lower = text.lower()
-    letters = re.sub(r"[^a-z]", "", text_lower)
+    letters = PATTERN_NON_ALPHA.sub("", text_lower)
     
     if not letters or len(letters) < 4:
         return False
@@ -32,20 +43,12 @@ def _looks_gibberish(text: str) -> bool:
         return True
     
     # Check for repeating patterns (e.g., "asdasdasd", "123123123")
-    repeating = re.match(r"^([a-z]{1,4})\1{2,}$", letters)
-    if repeating:
+    if PATTERN_REPEATING.match(letters):
         return True
     
     # Check for keyboard mashing patterns (consecutive keys)
     # Common patterns: qwerty, asdf, zxcv, consecutive numbers
-    keyboard_rows = [
-        "qwertyuiop",
-        "asdfghjkl",
-        "zxcvbnm",
-        "1234567890"
-    ]
-    
-    for row in keyboard_rows:
+    for row in KEYBOARD_ROWS:
         # Check for 4+ consecutive characters from same keyboard row
         for i in range(len(row) - 3):
             pattern = row[i:i+4]
