@@ -196,6 +196,7 @@ class RequestProcessor:
         if total_tokens:
             await self.db.increment_daily_chat_usage(guild_id, user_id, total_tokens)
         
-        # Format reply with prefix/suffix
+        # Format reply with question prefix and prefix/suffix
         formatted_reply = self.yaml_config.format_reply(grok_result.content)
-        return ProcessResult(reply=formatted_reply, log_id=log_id, status="auto_responded")
+        reply_with_question = f"**Question:** {content}\n\n{formatted_reply}"
+        return ProcessResult(reply=reply_with_question, log_id=log_id, status="auto_responded")
