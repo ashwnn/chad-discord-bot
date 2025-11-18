@@ -157,6 +157,12 @@ header {
   letter-spacing: -0.01em;
 }
 
+.brand-logo {
+  height: 40px;
+  width: auto;
+  max-width: 200px;
+}
+
 .main-nav {
   display: flex;
   gap: 12px;

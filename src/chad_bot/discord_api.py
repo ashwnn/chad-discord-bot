@@ -10,6 +10,27 @@ class DiscordApiClient:
         self.token = token
         self.base_url = "https://discord.com/api/v10"
 
+    async def get_guild(self, guild_id: str) -> Optional[Dict[str, Any]]:
+        """Fetch guild information from Discord API."""
+        if not self.token:
+            logger.warning("Discord token missing, skipping guild fetch")
+            return None
+        
+        async with httpx.AsyncClient(base_url=self.base_url, timeout=15.0) as client:
+            try:
+                resp = await client.get(
+                    f"/guilds/{guild_id}",
+                    headers={"Authorization": f"Bot {self.token}"},
+                )
+                if resp.status_code >= 400:
+                    logger.error("Failed fetching guild %s: %s - %s", guild_id, resp.status_code, resp.text)
+                    return None
+                resp.raise_for_status()
+                return resp.json()
+            except Exception as exc:  # noqa: BLE001
+                logger.error("Error fetching guild %s: %s", guild_id, exc)
+                return None
+
     async def send_message(
         self,
         *,

@@ -11,13 +11,16 @@
 <div class="guild-list">
   <h3 class="section-title">Your Guilds</h3>
   <div class="guilds-grid">
-    {% for guild_id in guilds %}
-    <a href="/guilds/{{ guild_id }}" class="guild-card">
-      <div class="guild-icon">G</div>
-      <p class="guild-name">Guild {{ guild_id }}</p>
-      <p class="guild-id">{{ guild_id }}</p>
-      <p class="guild-link">Manage →</p>
-    </a>
+    {% for guild in guilds %}
+    <div class="guild-card-container">
+      <a href="/guilds/{{ guild.id }}" class="guild-card">
+        <div class="guild-icon">G</div>
+        <p class="guild-name">{{ guild.name }}</p>
+        <p class="guild-id">{{ guild.id }}</p>
+        <p class="guild-link">Manage →</p>
+      </a>
+      <button class="btn btn-delete-guild" onclick="deleteGuild('{{ guild.id }}', event)" title="Delete this guild from database">Delete</button>
+    </div>
     {% endfor %}
   </div>
 </div>
@@ -80,6 +83,12 @@
     gap: 16px;
   }
 
+  .guild-card-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
   .guild-card {
     display: flex;
     flex-direction: column;
@@ -93,6 +102,7 @@
     color: inherit;
     transition: all 0.2s ease;
     cursor: pointer;
+    flex: 1;
   }
 
   .guild-card:hover {
@@ -132,6 +142,19 @@
     color: var(--color-blue-500);
     font-weight: 500;
     font-size: 0.9rem;
+  }
+
+  .btn-delete-guild {
+    margin-top: 8px;
+    background: var(--color-text-danger);
+    border-color: var(--color-text-danger);
+    padding: 8px 12px;
+    font-size: 0.8rem;
+  }
+
+  .btn-delete-guild:hover {
+    background: #b91c1c;
+    border-color: #b91c1c;
   }
 
   .guild-list {
@@ -225,4 +248,30 @@
     }
   }
 </style>
+
+<script>
+async function deleteGuild(guildId, event) {
+  event.stopPropagation();
+  
+  if (!confirm(`Are you sure you want to delete the configuration for guild ${guildId}? This action cannot be undone.`)) {
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/guilds/${guildId}`, {
+      method: "DELETE",
+    });
+
+    if (res.ok) {
+      alert("Guild deleted successfully");
+      location.reload();
+    } else {
+      const error = await res.json();
+      alert(`Failed to delete guild: ${error.detail || "Unknown error"}`);
+    }
+  } catch (err) {
+    alert(`Error deleting guild: ${err.message}`);
+  }
+}
+</script>
 {% endblock %}

@@ -73,7 +73,14 @@ def create_app(settings: Settings) -> FastAPI:
 
     @app.get("/", response_class=HTMLResponse)
     async def index(request: Request):
-        guilds = await db.list_guilds()
+        guild_ids = await db.list_guilds()
+        guilds = []
+        for guild_id in guild_ids:
+            guild_info = await discord_api.get_guild(guild_id)
+            guilds.append({
+                "id": guild_id,
+                "name": guild_info.get("name", f"Guild {guild_id}") if guild_info else f"Guild {guild_id}"
+            })
         return templates.TemplateResponse(
             "index.html",
             {"request": request, "guilds": guilds},
@@ -188,6 +195,12 @@ def create_app(settings: Settings) -> FastAPI:
             update_data[key] = value
         updated = await db.upsert_guild_config(GuildConfig(**update_data))
         return updated.__dict__
+
+    @app.delete("/api/guilds/{guild_id}")
+    async def delete_guild(guild_id: str):
+        """Delete guild configuration and all associated data from database."""
+        await db.delete_guild(guild_id)
+        return {"status": "deleted", "guild_id": guild_id}
 
     @app.get("/api/guilds/{guild_id}/pending")
     async def list_pending(guild_id: str):

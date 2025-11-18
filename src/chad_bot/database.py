@@ -549,3 +549,14 @@ class Database:
         ) as cur:
             row = await cur.fetchone()
             return int(row["count"] if row else 0)
+
+    async def delete_guild(self, guild_id: str) -> None:
+        """Delete all guild configuration and history from database."""
+        async with self._lock:
+            await self.conn.execute("DELETE FROM guild_config WHERE guild_id = ?", (guild_id,))
+            await self.conn.execute("DELETE FROM admin_users WHERE guild_id = ?", (guild_id,))
+            await self.conn.execute("DELETE FROM user_daily_usage WHERE guild_id = ?", (guild_id,))
+            await self.conn.execute("DELETE FROM guild_daily_usage WHERE guild_id = ?", (guild_id,))
+            await self.conn.execute("DELETE FROM message_log WHERE guild_id = ?", (guild_id,))
+            await self.conn.commit()
+

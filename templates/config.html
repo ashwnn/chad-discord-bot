@@ -266,11 +266,19 @@ document.getElementById("config-form").addEventListener("submit", async (e) => {
   const formData = new FormData(e.target);
   const payload = {};
   
+  // Define which fields should be numeric
+  const numericFields = [
+    'ask_window_seconds', 'ask_max_per_window', 'image_window_seconds',
+    'image_max_per_window', 'duplicate_window_seconds', 'user_daily_chat_token_limit',
+    'global_daily_chat_token_limit', 'user_daily_image_limit', 'global_daily_image_limit',
+    'temperature', 'max_completion_tokens', 'max_prompt_chars'
+  ];
+  
   // Process all form fields
   for (const [key, value] of formData.entries()) {
     if (key === "auto_approve_enabled" || key === "admin_bypass_auto_approve") {
       payload[key] = true;
-    } else if (!isNaN(value) && value !== "") {
+    } else if (numericFields.includes(key) && value !== "") {
       payload[key] = Number(value);
     } else {
       payload[key] = value;
@@ -295,9 +303,20 @@ document.getElementById("config-form").addEventListener("submit", async (e) => {
   if (res.ok) {
     status.textContent = "Configuration saved";
     status.style.color = "var(--color-text-success)";
+    console.log("Configuration saved successfully");
   } else {
-    status.textContent = "Error saving configuration";
+    let errorMessage = "Error saving configuration";
+    try {
+      const errorData = await res.json();
+      if (errorData.detail) {
+        errorMessage = `Error: ${errorData.detail}`;
+      }
+    } catch (e) {
+      // Could not parse error response
+    }
+    status.textContent = errorMessage;
     status.style.color = "var(--color-text-danger)";
+    console.error("Failed to save configuration:", errorMessage);
   }
   setTimeout(() => { status.textContent = ""; }, 3000);
 });
