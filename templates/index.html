@@ -2,72 +2,73 @@
 {% block title %}Guilds - Chad Bot Admin{% endblock %}
 
 {% block content %}
-<div class="page-header mb-10">
-  <h1 class="text-3xl font-semibold mb-2">Chad Bot Admin</h1>
-  <p class="page-subtitle text-xl text-muted">Configure and manage your Discord guild's bot instance</p>
+<div class="page-header">
+  <h1>Chad Bot Admin</h1>
+  <p class="page-subtitle">Configure and manage your Discord guild's bot instance</p>
 </div>
 
 {% if guilds %}
-<div class="guild-list mb-10">
-  <h3 class="section-title text-2xl font-semibold mb-5">Your Guilds</h3>
-  <div class="guilds-grid grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4">
+<div class="guild-list">
+  <h3>Your Guilds</h3>
+  <div class="guilds-grid">
     
     {% for guild in guilds %}
-    <div class="guild-card-container flex flex-col">
-      <div class="guild-card flex-1 flex flex-col bg-base border border-border-base rounded-lg shadow-base transition-shadow hover:shadow-md overflow-hidden">
-        
-        <a href="/guilds/{{ guild.id }}" class="guild-card-link flex-1 flex flex-col items-center gap-3 p-5 px-4 text-center transition-colors hover:bg-menu-item-hover no-underline">
+    <div class="guild-card">
+      <a href="/guilds/{{ guild.id }}" class="guild-card-link">
+        <div class="guild-icon-wrapper">
           {% if guild.icon_url %}
-            <img src="{{ guild.icon_url }}" alt="{{ guild.name }} Icon" class="guild-icon-image w-12 h-12 rounded-full object-cover bg-blue-500">
+            <img src="{{ guild.icon_url }}" alt="{{ guild.name }} Icon" class="guild-icon-image">
           {% else %}
-            <div class="guild-icon w-12 h-12 rounded-full bg-blue-500 text-white font-semibold text-2xl flex items-center justify-center">{{ guild.name[0] | upper }}</div>
+            <div class="guild-icon">{{ guild.name[0] | upper }}</div>
           {% endif %}
-          
-          <p class="guild-name font-semibold text-lg m-0">{{ guild.name }}</p>
-          <p class="guild-id text-sm text-muted m-0 break-all">{{ guild.id }}</p>
-        </a>
+        </div>
         
-        <button class="btn btn-danger rounded-none w-full border-t border-border-base text-sm py-2.5 px-3" onclick="deleteGuild('{{ guild.id }}', event)" title="Delete this guild from database">
-          Delete
-        </button>
-      </div>
+        <div class="guild-info">
+          <p class="guild-name">{{ guild.name }}</p>
+          <p class="guild-id">{{ guild.id }}</p>
+        </div>
+      </a>
+      
+      <button class="btn btn-danger btn-delete" onclick="deleteGuild('{{ guild.id }}', event)" title="Delete this guild from database">
+        Delete
+      </button>
     </div>
     {% endfor %}
     
   </div>
 </div>
 {% else %}
-<div class="card getting-started max-w-2xl">
-  <h3 class="text-xl font-semibold">Getting Started</h3>
-  <p class="card-description text-base text-muted mb-6">Set up your first guild to get started</p>
+<div class="card getting-started">
+  <h3>Getting Started</h3>
+  <p class="muted">Set up your first guild to get started</p>
   
-  <ol class="steps-list p-0 m-0 list-none">
-    <li class="relative mb-5 pl-10">
-      <span class="absolute left-0 top-0 w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-semibold text-sm">1</span>
-      <strong class="text-lg mb-1 block">Add the bot to your Discord guild</strong>
-      <p class="m-0 text-base text-muted">Invite the Chad Bot to your Discord server</p>
+  <ol class="steps-list">
+    <li>
+      <span>1</span>
+      <strong>Add the bot to your Discord guild</strong>
+      <p>Invite the Chad Bot to your Discord server</p>
     </li>
-    <li class="relative mb-5 pl-10">
-      <span class="absolute left-0 top-0 w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-semibold text-sm">2</span>
-      <strong class="text-lg mb-1 block">Run the bot once</strong>
-      <p class="m-0 text-base text-muted">Use any command in your guild to initialize the configuration</p>
+    <li>
+      <span>2</span>
+      <strong>Run the bot once</strong>
+      <p>Use any command in your guild to initialize the configuration</p>
     </li>
-    <li class="relative mb-5 pl-10">
-      <span class="absolute left-0 top-0 w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-semibold text-sm">3</span>
-      <strong class="text-lg mb-1 block">Grant yourself admin rights</strong>
-      <p class="m-0 text-base text-muted">Run this command in your database:</p>
-      <div class="code-block mt-2 p-3 bg-app rounded-lg border-l-4 border-blue-500 overflow-x-auto">
-        <code class="font-mono text-sm text-muted break-all">sqlite3 chad.sqlite3 "INSERT OR IGNORE INTO admin_users (discord_user_id, guild_id) VALUES ('YOUR_ID', 'GUILD_ID');"</code>
+    <li>
+      <span>3</span>
+      <strong>Grant yourself admin rights</strong>
+      <p>Run this command in your database:</p>
+      <div class="code-block">
+        <code>sqlite3 chad.sqlite3 "INSERT OR IGNORE INTO admin_users (discord_user_id, guild_id) VALUES ('YOUR_ID', 'GUILD_ID');"</code>
       </div>
     </li>
-    <li class="relative mb-5 pl-10">
-      <span class="absolute left-0 top-0 w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-semibold text-sm">4</span>
-      <strong class="text-lg mb-1 block">Refresh this page</strong>
-      <p class="m-0 text-base text-muted">Your guild should appear in the list above</p>
+    <li>
+      <span>4</span>
+      <strong>Refresh this page</strong>
+      <p>Your guild should appear in the list above</p>
     </li>
   </ol>
   
-  <p class="help-text mt-6 p-3 px-4 bg-blue-0 text-blue-800 text-sm rounded-lg m-0">Need more help? Check the README.md for detailed instructions.</p>
+  <p class="help-text">Need more help? Check the README.md for detailed instructions.</p>
 </div>
 {% endif %}
 {% endblock %}
