@@ -31,12 +31,12 @@
 
   <div class="card">
     <h3>Today's Chat Tokens</h3>
-    <p style="font-size: 1.75rem; font-weight: 700; margin: 8px 0;">
-      {{ usage.guild.chat_tokens_used }} <span style="font-size: 0.875rem; color: var(--color-text-muted);">/ {{ config.global_daily_chat_token_limit }}</span>
+    <p class="stat-value">
+      {{ usage.guild.chat_tokens_used }} <span class="stat-value-sub">/ {{ config.global_daily_chat_token_limit }}</span>
     </p>
-    {% set pct = (usage.guild.chat_tokens_used / config.global_daily_chat_token_limit * 100) | round %}
-    <div style="background: var(--color-bg-app); border-radius: 4px; height: 6px; margin: 12px 0; overflow: hidden;">
-      <div style="background: var(--color-blue-500); height: 100%; width: {{ pct }}%;"></div>
+    <div class="progress-bar">
+      {% set pct = (usage.guild.chat_tokens_used / config.global_daily_chat_token_limit * 100) | round %}
+      <div class="progress-bar-fill" style="width: {{ pct }}%;"></div>
     </div>
     <p class="muted text-sm">Guild daily limit</p>
   </div>
@@ -45,19 +45,19 @@
 <div class="grid grid-cols-3">
   <div class="card">
     <h3>Pending Approvals</h3>
-    <p style="font-size: 1.75rem; font-weight: 700; margin: 8px 0;">{{ pending | length }}</p>
+    <p class="stat-value">{{ pending | length }}</p>
     <a href="/guilds/{{ guild_id }}/queue" class="btn btn-sm">Review Queue →</a>
   </div>
 
   <div class="card">
     <h3>Lifetime Tokens</h3>
-    <p style="font-size: 1.75rem; font-weight: 700; margin: 8px 0;">{{ analytics.token_total }}</p>
+    <p class="stat-value">{{ analytics.token_total }}</p>
     <p class="muted text-sm">All time chat tokens</p>
   </div>
 
   <div class="card">
     <h3>Estimated Cost</h3>
-    <p style="font-size: 1.75rem; font-weight: 700; margin: 8px 0;">${{ "%.4f"|format(analytics.total_cost_usd) }}</p>
+    <p class="stat-value">${{ "%.4f"|format(analytics.total_cost_usd) }}</p>
     <p class="muted text-sm">Total API usage cost</p>
     <p class="muted text-xs">Model: {{ model_pricing.model }} | Input: ${{ "%.2f"|format(model_pricing.prompt) }}/M | Output: ${{ "%.2f"|format(model_pricing.completion) }}/M</p>
   </div>
@@ -68,12 +68,12 @@
   <p class="page-subtitle">All time request statuses</p>
   <div class="status-grid">
     {% set statuses = [
-      ('auto_responded', 'Auto Responded', '#2563eb'),
-      ('approved_grok', 'Approved via Grok', '#16a34a'),
-      ('approved_manual', 'Approved Manually', '#10b981'),
-      ('rejected', 'Rejected', '#dc2626'),
-      ('pending_approval', 'Pending Review', '#f59e0b'),
-      ('error', 'Errors', '#ef4444')
+      ('auto_responded', 'Auto Responded', 'rgb(var(--color-blue-500))'),
+      ('approved_grok', 'Approved via Grok', 'rgb(var(--color-green-500))'),
+      ('approved_manual', 'Approved Manually', 'rgb(var(--color-green-400))'),
+      ('rejected', 'Rejected', 'rgb(var(--color-red-600))'),
+      ('pending_approval', 'Pending Review', 'rgb(var(--color-yellow-500))'),
+      ('error', 'Errors', 'rgb(var(--color-red-400))')
     ] %}
     {% for key, label, color in statuses %}
     <div class="status-item">
@@ -140,12 +140,12 @@
 
 <style>
   .page-header {
-    margin-bottom: 32px;
+    margin-bottom: 2rem; /* 32px */
   }
 
   .page-header h2 {
-    margin: 0 0 8px 0;
-    font-size: 2rem;
+    margin: 0 0 0.5rem 0; /* 8px */
+    font-size: 2rem; /* 32px */
   }
 
   .page-subtitle {
@@ -155,44 +155,68 @@
 
   .grid {
     display: grid;
-    gap: 16px;
-    margin-bottom: 32px;
+    gap: 1rem; /* 16px */
+    margin-bottom: 2rem; /* 32px */
   }
 
   .grid-cols-3 {
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   }
 
+  .stat-value {
+    font-size: 1.75rem; /* 28px */
+    font-weight: 700;
+    margin: 0.5rem 0; /* 8px */
+  }
+
+  .stat-value-sub {
+    font-size: 0.875rem; /* 14px */
+    color: var(--color-text-muted);
+  }
+
+  .progress-bar {
+    background: var(--color-bg-app);
+    border-radius: 0.25rem; /* 4px */
+    height: 0.375rem; /* 6px */
+    margin: 0.75rem 0; /* 12px */
+    overflow: hidden;
+  }
+  
+  .progress-bar-fill {
+    background: rgb(var(--color-blue-500) / 1);
+    height: 100%;
+  }
+
   .status-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 16px;
-    margin-top: 16px;
+    gap: 1rem; /* 16px */
+    margin-top: 1rem; /* 16px */
   }
 
   .status-item {
     display: flex;
-    gap: 12px;
-    padding: 16px;
+    gap: 0.75rem; /* 12px */
+    padding: 1rem; /* 16px */
     background: var(--color-bg-app);
-    border-radius: 8px;
+    border-radius: 0.5rem; /* 8px */
   }
 
   .status-icon {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    min-width: 12px;
+    width: 0.75rem; /* 12px */
+    height: 0.75rem; /* 12px */
+    border-radius: 9999px;
+    min-width: 0.75rem; /* 12px */
   }
 
   .status-label {
-    font-size: 0.875rem;
+    font-size: 0.875rem; /* 14px */
     color: var(--color-text-muted);
-    margin: 0 0 4px 0;
+    margin: 0 0 0.25rem 0; /* 4px */
   }
 
   .status-count {
-    font-size: 1.5rem;
+    font-size: 1.5rem; /* 24px */
     font-weight: 700;
     margin: 0;
   }
@@ -201,14 +225,20 @@
     text-align: center;
   }
 
+  /* Base text size from guide */
   .text-sm {
-    font-size: 0.875rem;
+    font-size: 0.875rem; /* 14px */
+  }
+
+  /* Smallest text size from guide */
+  .text-xs {
+    font-size: 0.75rem; /* 12px */
   }
 
   .btn-sm {
-    padding: 8px 16px;
-    font-size: 0.875rem;
-    margin-top: 8px;
+    padding: 0.5rem 1rem; /* 8px 16px */
+    font-size: 0.875rem; /* 14px */
+    margin-top: 0.5rem; /* 8px */
   }
 
   .table {
@@ -218,20 +248,20 @@
 
   .table thead th {
     text-align: left;
-    padding: 12px 8px;
-    border-bottom: 2px solid var(--color-border-base);
+    padding: 0.75rem 0.5rem; /* 12px 8px */
+    border-bottom: 1px solid var(--color-border-base); /* Thinner border */
     font-weight: 600;
-    font-size: 0.875rem;
+    font-size: 0.75rem; /* 12px, per guide spec */
     color: var(--color-text-muted);
   }
 
   .table tbody td {
-    padding: 12px 8px;
+    padding: 0.75rem 0.5rem; /* 12px 8px */
     border-bottom: 1px solid var(--color-border-base);
   }
 
   .table tbody tr:hover {
-    background: var(--color-bg-app);
+    background: var(--color-bg-menu-item-hover);
   }
 </style>
 {% endblock %}

@@ -132,6 +132,10 @@
 {% endif %}
 
 <style>
+  /* This embedded style block has been updated to use the CSS variables 
+    from the style-guide.md (defined in style.css).
+  */
+
   .page-header {
     margin-bottom: 32px;
   }
@@ -139,17 +143,21 @@
   .page-header h2 {
     margin: 0 0 8px 0;
     font-size: 2rem;
+    font-weight: 600; /* from guide */
+    letter-spacing: -0.025em; /* from guide */
   }
 
   .page-subtitle {
     margin: 0;
     color: var(--color-text-muted);
+    font-size: 1.125rem; /* from guide */
   }
 
   .filter-card h3 {
     margin-top: 0;
     margin-bottom: 16px;
-    font-size: 1rem;
+    font-size: 1.125rem; /* 18px */
+    font-weight: 600; /* from guide */
   }
 
   .filter-form {
@@ -170,26 +178,31 @@
     font-size: 0.875rem;
   }
 
+  /* Re-themed select to match guide's input fields */
   .filter-group select {
     padding: 8px 12px;
-    border: 1px solid var(--color-border-base);
-    border-radius: 4px;
+    border: 1px solid var(--color-border-interactive);
+    border-radius: 0.375rem; /* 6px */
     font-size: 0.875rem;
+    background: var(--color-bg-base);
   }
 
+  /* Re-themed custom button to match guide's primary button */
   .btn-filter {
     padding: 8px 16px;
-    background: var(--color-blue-500);
-    color: white;
+    background: rgb(var(--color-blue-600) / 1);
+    color: var(--color-white);
     border: none;
-    border-radius: 4px;
+    border-radius: 0.375rem; /* 6px */
     font-weight: 500;
     cursor: pointer;
     font-size: 0.875rem;
+    box-shadow: var(--shadow-button);
   }
 
   .btn-filter:hover {
-    background: var(--color-blue-600);
+    background: rgb(var(--color-blue-500) / 1);
+    box-shadow: var(--shadow-md);
   }
 
   .table {
@@ -200,10 +213,12 @@
   .table thead th {
     text-align: left;
     padding: 12px;
-    border-bottom: 2px solid var(--color-border-base);
+    border-bottom: 1px solid var(--color-border-base); /* Changed to 1px for subtlety */
     font-weight: 600;
-    font-size: 0.85rem;
+    font-size: 0.75rem; /* 12px */
     color: var(--color-text-muted);
+    text-transform: uppercase; /* from guide */
+    letter-spacing: 0.05em; /* from guide */
   }
 
   .history-table tbody td {
@@ -212,7 +227,7 @@
   }
 
   .history-row:hover {
-    background: var(--color-bg-app);
+    background: var(--color-bg-menu-item-hover);
   }
 
   .preview-cell {
@@ -223,7 +238,7 @@
   }
 
   .text-sm {
-    font-size: 0.875rem;
+    font-size: 0.75rem; /* 12px (from guide) */
   }
 
   .muted {
@@ -240,7 +255,7 @@
 
   .details-panel {
     padding: 20px;
-    border-radius: 6px;
+    border-radius: 0.375rem; /* 6px */
   }
 
   .details-grid {
@@ -264,18 +279,20 @@
   .detail-text {
     margin: 0;
     padding: 12px;
-    background: white;
-    border-radius: 4px;
-    border-left: 3px solid var(--color-blue-500);
+    background: var(--color-bg-base);
+    border-radius: 0.25rem; /* 4px */
+    border-left: 3px solid rgb(var(--color-blue-500) / 1);
     white-space: pre-wrap;
     word-break: break-word;
-    font-family: 'Courier New', monospace;
-    font-size: 0.85rem;
+    /* Using guide's monospace font stack */
+    font-family: SFMono-Regular, SFMono Regular, Consolas, Liberation Mono, Menlo,
+      Courier, monospace;
+    font-size: 0.8125rem; /* 13px (from guide) */
   }
 
   .detail-text.bot-reply {
-    border-left-color: #10b981;
-    background: #f0fdf4;
+    border-left-color: rgb(var(--color-green-300) / 1); /* Was #10b981 */
+    background: rgb(var(--color-green-0) / 1); /* Was #f0fdf4 */
   }
 
   .detail-list {
@@ -307,20 +324,23 @@
     white-space: nowrap;
   }
 
+  /* Re-themed custom delete button */
   .btn-delete {
     padding: 4px 12px;
-    background: var(--color-red-500, #ef4444);
-    color: white;
+    background: rgb(var(--color-red-600) / 1); /* Was var(--color-red-500) */
+    color: var(--color-white);
     border: none;
-    border-radius: 4px;
+    border-radius: 0.375rem; /* 6px */
     font-weight: 500;
     cursor: pointer;
     font-size: 0.75rem;
     transition: background 0.2s ease;
+    box-shadow: var(--shadow-button);
   }
 
   .btn-delete:hover {
-    background: var(--color-red-600, #dc2626);
+    background: rgb(var(--color-red-500) / 1); /* Was var(--color-red-600) */
+    box-shadow: var(--shadow-md);
   }
 
   .text-muted {
@@ -330,6 +350,7 @@
   @media (max-width: 768px) {
     .filter-form {
       flex-direction: column;
+      align-items: stretch;
     }
 
     .filter-group {

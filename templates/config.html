@@ -8,7 +8,6 @@
 </div>
 
 <form id="config-form" class="card">
-  <!-- Rate Limits Section -->
   <section class="form-section">
     <div class="section-header">
       <h3>Rate Limits</h3>
@@ -34,7 +33,6 @@
 
   <hr class="section-divider">
 
-  <!-- Daily Budgets Section -->
   <section class="form-section">
     <div class="section-header">
       <h3>Daily Budgets</h3>
@@ -55,7 +53,6 @@
 
   <hr class="section-divider">
 
-  <!-- Auto Approval Section -->
   <section class="form-section">
     <div class="section-header">
       <h3>Auto Approval</h3>
@@ -64,17 +61,21 @@
 
     <div class="form-group">
       <label class="toggle">
-        <input type="checkbox" id="auto_approve_enabled" name="auto_approve_enabled" {% if config.auto_approve_enabled %}checked{% endif %}>
-        <span class="toggle-switch"></span>
-        Enable auto-approve queue
+        <label class="toggle-switch">
+          <input type="checkbox" id="auto_approve_enabled" name="auto_approve_enabled" {% if config.auto_approve_enabled %}checked{% endif %}>
+          <span class="toggle-slider"></span>
+        </label>
+        <span>Enable auto-approve queue</span>
       </label>
     </div>
 
     <div class="form-group">
       <label class="toggle">
-        <input type="checkbox" id="admin_bypass_auto_approve" name="admin_bypass_auto_approve" {% if config.admin_bypass_auto_approve %}checked{% endif %}>
-        <span class="toggle-switch"></span>
-        Admins bypass auto-approve
+        <label class="toggle-switch">
+          <input type="checkbox" id="admin_bypass_auto_approve" name="admin_bypass_auto_approve" {% if config.admin_bypass_auto_approve %}checked{% endif %}>
+          <span class="toggle-slider"></span>
+        </label>
+        <span>Admins bypass auto-approve</span>
       </label>
     </div>
 
@@ -87,7 +88,6 @@
 
   <hr class="section-divider">
 
-  <!-- Grok Settings Section -->
   <section class="form-section">
     <div class="section-header">
       <h3>Grok Model Settings</h3>
@@ -115,7 +115,6 @@
 
   <hr class="section-divider">
 
-  <!-- System Prompt Section -->
   <section class="form-section">
     <div class="section-header">
       <h3>Guild System Prompt</h3>
@@ -129,126 +128,10 @@
   </section>
 
   <div class="form-actions">
-    <button type="submit" class="btn btn-primary">Save Configuration</button>
+    <button type="submit" class="btn">Save Configuration</button>
     <div id="config-status" class="muted"></div>
   </div>
 </form>
-
-<style>
-  .page-header {
-    margin-bottom: 32px;
-  }
-
-  .page-header h2 {
-    margin: 0 0 8px 0;
-    font-size: 2rem;
-  }
-
-  .page-subtitle {
-    margin: 0;
-    color: var(--color-text-muted);
-  }
-
-  .form-section {
-    margin-bottom: 24px;
-  }
-
-  .section-header h3 {
-    margin: 0 0 4px 0;
-    font-size: 1.125rem;
-  }
-
-  .section-description {
-    margin: 0;
-    color: var(--color-text-muted);
-    font-size: 0.875rem;
-  }
-
-  .grid {
-    display: grid;
-    gap: 16px;
-    margin: 16px 0;
-  }
-
-  .grid-cols-2 {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  }
-
-  .form-group {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .form-group label {
-    font-weight: 500;
-    margin-bottom: 6px;
-    font-size: 0.9rem;
-  }
-
-  .form-group input,
-  .form-group textarea {
-    padding: 10px 12px;
-    border: 1px solid var(--color-border-base);
-    border-radius: 6px;
-    font-family: inherit;
-    font-size: 0.95rem;
-  }
-
-  .form-group textarea {
-    resize: vertical;
-    min-height: 120px;
-    font-family: 'Courier New', monospace;
-  }
-
-  .form-hint {
-    margin: 4px 0 0 0;
-    font-size: 0.8rem;
-    color: var(--color-text-muted);
-  }
-
-  .toggle {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    user-select: none;
-  }
-
-  .toggle input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
-  }
-
-  .section-divider {
-    margin: 32px 0;
-    border: none;
-    border-top: 1px solid var(--color-border-base);
-  }
-
-  .form-actions {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    margin-top: 24px;
-    padding-top: 24px;
-    border-top: 1px solid var(--color-border-base);
-  }
-
-  .btn-primary {
-    padding: 10px 24px;
-    background: var(--color-blue-500);
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-weight: 600;
-    cursor: pointer;
-  }
-
-  .btn-primary:hover {
-    background: var(--color-blue-600);
-  }
-</style>
 
 <script>
 const guildId = "{{ guild_id }}";

@@ -7,7 +7,6 @@
   <p class="page-subtitle">Manage who can access this guild's admin panel</p>
 </div>
 
-<!-- Add Admin Section -->
 <div class="card add-admin-card">
   <h3>Add Admin User</h3>
   <p class="card-description">Grant admin access to Discord users</p>
@@ -15,13 +14,12 @@
   <form id="add-admin-form" class="add-admin-form">
     <div class="input-group">
       <input type="text" id="new-admin-id" placeholder="Enter Discord User ID" required>
-      <button type="submit" class="btn btn-primary">Add Admin</button>
+      <button type="submit" class="btn">Add Admin</button>
     </div>
     <div id="add-status" class="form-feedback"></div>
   </form>
 </div>
 
-<!-- Admin List Section -->
 <div class="card">
   <h3>Current Admin Users</h3>
   <p class="card-description">All administrators for this guild</p>
@@ -43,12 +41,12 @@
 
 <style>
   .page-header {
-    margin-bottom: 32px;
+    margin-bottom: 2rem; /* 32px */
   }
 
   .page-header h2 {
-    margin: 0 0 8px 0;
-    font-size: 2rem;
+    margin: 0 0 0.5rem 0; /* 8px */
+    font-size: 2rem; /* 32px */
   }
 
   .page-subtitle {
@@ -58,91 +56,75 @@
 
   .card h3 {
     margin-top: 0;
-    margin-bottom: 8px;
-    font-size: 1.1rem;
+    margin-bottom: 0.5rem; /* 8px */
+    font-size: 1.125rem; /* 18px */
   }
 
   .card-description {
-    margin: 0 0 16px 0;
-    font-size: 0.9rem;
+    margin: 0 0 1rem 0; /* 16px */
+    font-size: 0.875rem; /* 14px */
     color: var(--color-text-muted);
   }
 
   .add-admin-card {
-    margin-bottom: 32px;
+    margin-bottom: 2rem; /* 32px */
   }
 
   .add-admin-form {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 0.75rem; /* 12px */
   }
 
   .input-group {
     display: flex;
-    gap: 12px;
+    gap: 0.75rem; /* 12px */
   }
 
   .input-group input {
     flex: 1;
-    padding: 10px 12px;
-    border: 1px solid var(--color-border-base);
-    border-radius: 6px;
-    font-size: 0.95rem;
+    padding: 0.625rem 0.75rem; /* 10px 12px */
+    border: 1px solid var(--color-border-interactive);
+    border-radius: 0.375rem; /* 6px */
+    font-size: 0.875rem; /* 14px */
   }
 
   .form-feedback {
-    font-size: 0.9rem;
+    font-size: 0.875rem; /* 14px */
     font-weight: 500;
-    min-height: 20px;
+    min-height: 1.25rem; /* 20px */
   }
 
   .form-feedback.success {
-    color: #059669;
+    color: var(--color-text-success);
   }
 
   .form-feedback.error {
-    color: #dc2626;
-  }
-
-  .btn-primary {
-    padding: 10px 24px;
-    background: var(--color-blue-500);
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-weight: 600;
-    cursor: pointer;
-    font-size: 0.95rem;
-    white-space: nowrap;
-  }
-
-  .btn-primary:hover {
-    background: var(--color-blue-600);
+    color: var(--color-text-danger);
   }
 
   .table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 12px;
+    margin-top: 0.75rem; /* 12px */
   }
 
   .table thead th {
     text-align: left;
-    padding: 12px;
-    border-bottom: 2px solid var(--color-border-base);
+    padding: 0.75rem; /* 12px */
+    border-bottom: 1px solid var(--color-border-base);
     font-weight: 600;
-    font-size: 0.85rem;
+    font-size: 0.75rem; /* 12px */
     color: var(--color-text-muted);
   }
 
   .admin-table tbody td {
-    padding: 12px;
+    padding: 0.75rem; /* 12px */
     border-bottom: 1px solid var(--color-border-base);
   }
 
   .admin-table tbody tr:hover {
-    background: var(--color-bg-app);
+    background: var(--color-bg-menu-item-hover);
   }
 
   .text-center {
@@ -153,19 +135,9 @@
     color: var(--color-text-muted);
   }
 
-  .btn-remove {
-    padding: 6px 12px;
-    background: #ef4444;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    font-weight: 500;
-    cursor: pointer;
-    font-size: 0.8rem;
-  }
-
-  .btn-remove:hover {
-    background: #dc2626;
+  .btn-sm {
+    padding: 0.375rem 0.75rem; /* 6px 12px */
+    font-size: 0.75rem; /* 12px */
   }
 
   @media (max-width: 640px) {
@@ -173,7 +145,7 @@
       flex-direction: column;
     }
 
-    .btn-primary {
+    .btn {
       width: 100%;
     }
   }
@@ -200,7 +172,7 @@ async function loadAdmins() {
         <td>${admin.role || '-'}</td>
         <td class="text-muted">${admin.created_at ? admin.created_at.substring(0, 10) : 'N/A'}</td>
         <td>
-          <button class="btn-remove" onclick="removeAdmin('${admin.discord_user_id}')">Remove</button>
+          <button class="btn danger btn-sm" onclick="removeAdmin('${admin.discord_user_id}')">Remove</button>
         </td>
       </tr>
     `).join('');

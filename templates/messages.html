@@ -8,9 +8,7 @@
   <p class="page-subtitle">Configure all bot messages, system prompt, and reply formatting</p>
 </div>
 
-<!-- System Prompt & Bot Settings -->
-<form id="messages-form" class="form-container">
-  <!-- System Settings Section -->
+<form id="messages-form" class="card">
   <section class="form-section">
     <div class="section-header">
       <h3>Bot Settings</h3>
@@ -33,7 +31,6 @@
 
   <hr class="section-divider">
 
-  <!-- System Prompt Section -->
   <section class="form-section">
     <div class="section-header">
       <h3>Global System Prompt</h3>
@@ -48,7 +45,6 @@
 
   <hr class="section-divider">
 
-  <!-- Error Messages Section -->
   <section class="form-section">
     <div class="section-header">
       <h3>Error & Validation Messages</h3>
@@ -86,7 +82,6 @@
 
   <hr class="section-divider">
 
-  <!-- Rate Limiting Messages Section -->
   <section class="form-section">
     <div class="section-header">
       <h3>Rate Limiting Messages</h3>
@@ -103,7 +98,6 @@
 
   <hr class="section-divider">
 
-  <!-- Budget Messages Section -->
   <section class="form-section">
     <div class="section-header">
       <h3>Budget Messages</h3>
@@ -124,7 +118,6 @@
 
   <hr class="section-divider">
 
-  <!-- Workflow Messages Section -->
   <section class="form-section">
     <div class="section-header">
       <h3>Workflow Messages</h3>
@@ -149,7 +142,6 @@
 
   <hr class="section-divider">
 
-  <!-- Success & Error Messages Section -->
   <section class="form-section">
     <div class="section-header">
       <h3>System Error Messages</h3>
@@ -177,20 +169,21 @@
   </section>
 
   <div class="form-actions">
-    <button type="submit" class="btn btn-primary">Save All Changes</button>
-    <button type="button" class="btn btn-secondary" onclick="loadMessages()">Reset to Current Values</button>
+    <button type="submit" class="btn">Save All Changes</button>
+    <button type="button" class="btn secondary" onclick="loadMessages()">Reset to Current Values</button>
     <div id="status-message"></div>
   </div>
 </form>
 
 <style>
   .page-header {
-    margin-bottom: 32px;
+    margin-bottom: 2rem; /* 32px */
   }
 
   .page-header h2 {
-    margin: 0 0 8px 0;
-    font-size: 2rem;
+    margin: 0 0 0.5rem 0; /* 8px */
+    font-size: 1.5rem; /* 24px */
+    font-weight: 600;
   }
 
   .page-subtitle {
@@ -198,32 +191,28 @@
     color: var(--color-text-muted);
   }
 
-  .form-container {
-    background: white;
-    border-radius: 8px;
-    padding: 24px;
-    border: 1px solid var(--color-border-base);
-  }
+  /* .form-container styles are now provided by .card */
 
   .form-section {
-    margin-bottom: 24px;
+    margin-bottom: 1.5rem; /* 24px */
   }
 
   .section-header h3 {
-    margin: 0 0 4px 0;
-    font-size: 1.1rem;
+    margin: 0 0 0.25rem 0; /* 4px */
+    font-size: 1.125rem; /* 18px */
+    font-weight: 600;
   }
 
   .section-description {
     margin: 0;
     color: var(--color-text-muted);
-    font-size: 0.875rem;
+    font-size: 0.875rem; /* 14px */
   }
 
   .grid {
     display: grid;
-    gap: 16px;
-    margin: 16px 0;
+    gap: 1rem; /* 16px */
+    margin: 1rem 0; /* 16px */
   }
 
   .grid-cols-2 {
@@ -237,33 +226,25 @@
 
   .form-group label {
     font-weight: 500;
-    margin-bottom: 6px;
-    font-size: 0.9rem;
+    margin-bottom: 0.375rem; /* 6px */
+    font-size: 0.875rem; /* 14px */
   }
 
-  .form-group input,
-  .form-group textarea {
-    padding: 10px 12px;
-    border: 1px solid var(--color-border-base);
-    border-radius: 6px;
-    font-family: inherit;
-    font-size: 0.95rem;
-  }
-
+  /* Input and textarea styles are now inherited from style.css */
   .form-group textarea {
     resize: vertical;
-    min-height: 120px;
-    font-family: 'Courier New', monospace;
+    min-height: 7.5rem; /* 120px */
+    font-family: SFMono-Regular, SFMono Regular, Consolas, Liberation Mono, Menlo, Courier, monospace;
   }
 
   .form-hint {
-    margin: 4px 0 0 0;
-    font-size: 0.8rem;
+    margin: 0.25rem 0 0 0; /* 4px */
+    font-size: 0.75rem; /* 12px */
     color: var(--color-text-muted);
   }
 
   .section-divider {
-    margin: 32px 0;
+    margin: 2rem 0; /* 32px */
     border: none;
     border-top: 1px solid var(--color-border-base);
   }
@@ -271,40 +252,14 @@
   .form-actions {
     display: flex;
     align-items: center;
-    gap: 16px;
-    margin-top: 24px;
-    padding-top: 24px;
+    gap: 1rem; /* 16px */
+    margin-top: 1.5rem; /* 24px */
+    padding-top: 1.5rem; /* 24px */
     border-top: 1px solid var(--color-border-base);
     flex-wrap: wrap;
   }
 
-  .btn {
-    padding: 10px 24px;
-    border: none;
-    border-radius: 6px;
-    font-weight: 600;
-    cursor: pointer;
-    font-size: 0.95rem;
-  }
-
-  .btn-primary {
-    background: var(--color-blue-500);
-    color: white;
-  }
-
-  .btn-primary:hover {
-    background: var(--color-blue-600);
-  }
-
-  .btn-secondary {
-    background: var(--color-bg-app);
-    color: var(--color-text-base);
-    border: 1px solid var(--color-border-base);
-  }
-
-  .btn-secondary:hover {
-    background: #e5e7eb;
-  }
+  /* .btn and .btn-secondary styles are inherited from style.css */
 
   #status-message {
     font-size: 0.9rem;
@@ -313,11 +268,11 @@
   }
 
   #status-message.success {
-    color: #059669;
+    color: var(--color-text-success);
   }
 
   #status-message.error {
-    color: #dc2626;
+    color: var(--color-text-danger);
   }
 
   @media (max-width: 768px) {

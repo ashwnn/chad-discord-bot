@@ -41,16 +41,16 @@
     <h3>Status Summary</h3>
     <div class="status-list">
       {% set statuses = [
-        ('auto_responded', 'Auto Responded', '#2563eb'),
-        ('approved_grok', 'Approved via Grok', '#16a34a'),
-        ('approved_manual', 'Approved Manually', '#10b981'),
-        ('rejected', 'Rejected', '#dc2626'),
-        ('pending_approval', 'Pending Review', '#f59e0b'),
-        ('error', 'Errors', '#ef4444'),
+        ('auto_responded', 'Auto Responded', '--color-blue-500'),
+        ('approved_grok', 'Approved via Grok', '--color-text-success'),
+        ('approved_manual', 'Approved Manually', '--color-green-300'),
+        ('rejected', 'Rejected', '--color-text-danger'),
+        ('pending_approval', 'Pending Review', '--color-text-warning'),
+        ('error', 'Errors', '--color-red-400')
       ] %}
-      {% for key, label, color in statuses %}
-      <div class="status-row">
-        <div class="status-indicator" style="background-color: {{ color }};"></div>
+      {% for key, label, color_var_name in statuses %}
+      <div class="status-row" data-color-var="{{ color_var_name }}">
+        <div class="status-indicator" style="background-color: rgb(var({{ color_var_name }}) / 1);"></div>
         <span class="status-label">{{ label }}</span>
         <strong class="status-count">{{ analytics.status_counts.get(key, 0) }}</strong>
       </div>
@@ -59,173 +59,80 @@
   </div>
 </div>
 
-<style>
-  .page-header {
-    margin-bottom: 32px;
-  }
-
-  .page-header h2 {
-    margin: 0 0 8px 0;
-    font-size: 2rem;
-  }
-
-  .page-subtitle {
-    margin: 0;
-    color: var(--color-text-muted);
-  }
-
-  .grid {
-    display: grid;
-    gap: 16px;
-    margin-bottom: 32px;
-  }
-
-  .grid-cols-3 {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  }
-
-  .grid-cols-2 {
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  }
-
-  .stat-card {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
-
-  .stat-label {
-    margin: 0;
-    font-size: 0.85rem;
-    font-weight: 500;
-    color: var(--color-text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  .stat-value {
-    margin: 8px 0 4px 0;
-    font-size: 2.5rem;
-    font-weight: 700;
-  }
-
-  .stat-subtitle {
-    margin: 0;
-    font-size: 0.8rem;
-    color: var(--color-text-muted);
-  }
-
-  .card h3 {
-    margin-top: 0;
-    margin-bottom: 16px;
-    font-size: 1.1rem;
-  }
-
-  .status-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .status-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--color-border-base);
-  }
-
-  .status-row:last-child {
-    border-bottom: none;
-  }
-
-  .status-indicator {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
-
-  .status-label {
-    flex: 1;
-    font-size: 0.9rem;
-  }
-
-  .status-count {
-    font-size: 1rem;
-    font-weight: 700;
-    min-width: 40px;
-    text-align: right;
-  }
-
-  @media (max-width: 768px) {
-    .grid-cols-3 {
-      grid-template-columns: 1fr;
-    }
-
-    .grid-cols-2 {
-      grid-template-columns: 1fr;
-    }
-
-    .stat-value {
-      font-size: 2rem;
-    }
-  }
-</style>
-
 <script>
-// Status breakdown chart
-const ctx = document.getElementById('statusChart').getContext('2d');
-const statusLabels = [
-  'Auto Responded',
-  'Approved (Grok)',
-  'Approved (Manual)',
-  'Rejected',
-  'Pending Review',
-  'Errors'
-];
-const statusData = [
-  {{ analytics.status_counts.get('auto_responded', 0) }},
-  {{ analytics.status_counts.get('approved_grok', 0) }},
-  {{ analytics.status_counts.get('approved_manual', 0) }},
-  {{ analytics.status_counts.get('rejected', 0) }},
-  {{ analytics.status_counts.get('pending_approval', 0) }},
-  {{ analytics.status_counts.get('error', 0) }}
-];
+document.addEventListener('DOMContentLoaded', () => {
+  // Status breakdown chart
+  const ctx = document.getElementById('statusChart').getContext('2d');
+  const statusLabels = [
+    'Auto Responded',
+    'Approved (Grok)',
+    'Approved (Manual)',
+    'Rejected',
+    'Pending Review',
+    'Errors'
+  ];
+  const statusData = [
+    {{ analytics.status_counts.get('auto_responded', 0) }},
+    {{ analytics.status_counts.get('approved_grok', 0) }},
+    {{ analytics.status_counts.get('approved_manual', 0) }},
+    {{ analytics.status_counts.get('rejected', 0) }},
+    {{ analytics.status_counts.get('pending_approval', 0) }},
+    {{ analytics.status_counts.get('error', 0) }}
+  ];
 
-new Chart(ctx, {
-  type: 'doughnut',
-  data: {
-    labels: statusLabels,
-    datasets: [{
-      data: statusData,
-      backgroundColor: [
-        '#2563eb',
-        '#16a34a',
-        '#10b981',
-        '#dc2626',
-        '#f59e0b',
-        '#ef4444'
-      ],
-      borderColor: '#ffffff',
-      borderWidth: 2
-    }]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: true,
-    plugins: {
-      legend: {
-        position: 'bottom',
-        labels: {
-          font: {
-            size: 12
-          },
-          padding: 15
+  // Read computed colors from the DOM to support light/dark mode
+  const computedStyles = getComputedStyle(document.documentElement);
+  const statusColors = Array.from(document.querySelectorAll('.status-row[data-color-var]'))
+    .map(row => {
+      const varName = row.dataset.colorVar;
+      // The style guide uses RGB components, so we read the variable
+      // and construct the rgb() string for the computed style.
+      const rgbValue = computedStyles.getPropertyValue(varName).trim();
+      return `rgb(${rgbValue})`;
+    });
+
+  // Get computed colors for chart text and borders
+  const chartBorderColor = `rgb(${computedStyles.getPropertyValue('--color-bg-base').trim()})`;
+  const chartTextColor = `rgb(${computedStyles.getPropertyValue('--color-text-muted').trim()})`;
+  const chartFontFamily = computedStyles.getPropertyValue('font-family') || "'Inter', sans-serif";
+
+  new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: statusLabels,
+      datasets: [{
+        data: statusData,
+        backgroundColor: statusColors.length > 0 ? statusColors : [
+          // Fallback colors just in case JS fails
+          '#2563eb',
+          '#16a34a',
+          '#10b981',
+          '#dc2626',
+          '#f59e0b',
+          '#ef4444'
+        ],
+        borderColor: chartBorderColor,
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            color: chartTextColor,
+            font: {
+              size: 12,
+              family: chartFontFamily
+            },
+            padding: 15
+          }
         }
       }
     }
-  }
+  });
 });
 </script>
 {% endblock %}
