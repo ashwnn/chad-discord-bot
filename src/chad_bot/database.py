@@ -393,6 +393,25 @@ class Database:
             )
             await self.conn.commit()
 
+    async def update_discord_message_id(self, message_id: int, discord_message_id: str) -> None:
+        """Update the actual Discord message ID for a logged message.
+        
+        This is used to store the ID of the bot's response message after it's sent.
+        Args:
+            message_id: The database record ID
+            discord_message_id: The actual Discord message ID (not interaction ID)
+        """
+        async with self._lock:
+            await self.conn.execute(
+                """
+                UPDATE message_log
+                SET discord_message_id = ?
+                WHERE id = ?;
+                """,
+                (discord_message_id, message_id),
+            )
+            await self.conn.commit()
+
     async def get_message(self, message_id: int) -> Optional[Dict[str, Any]]:
         async with self.conn.execute(
             "SELECT * FROM message_log WHERE id=?", (message_id,)

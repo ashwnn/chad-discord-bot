@@ -49,7 +49,11 @@ class ChadBot(commands.Bot):
         await self.change_presence(activity=discord.Game(name="/ask for questions"))
 
     async def on_reaction_add(self, reaction: discord.Reaction, user: discord.User | discord.Member) -> None:
-        """Handle reaction additions. Delete bot messages when admins react with ❌."""
+        """Handle reaction additions. Delete bot messages when admins react with ❌.
+        
+        This handler works on ANY message sent by the bot, including old messages
+        from previous sessions. It doesn't rely on message tracking in memory.
+        """
         # Ignore reactions from bots
         if user.bot:
             return
@@ -84,13 +88,29 @@ class ChadBot(commands.Bot):
             return
         
         try:
+            message_id = reaction.message.id
+            channel_id = reaction.message.channel.id
+            
+            # Delete the message
             await reaction.message.delete()
             logger.info(
-                "Message %s deleted by admin %s (%s) via ❌ reaction",
-                reaction.message.id,
+                "Message %s in channel %s deleted by admin %s (%s) via ❌ reaction",
+                message_id,
+                channel_id,
                 user,
                 user_id 
             )
+            
+            # Try to mark the message as deleted in the database (optional, best effort)
+            async with self.db.conn.execute(
+                "SELECT id FROM message_log WHERE discord_message_id = ? LIMIT 1",
+                (str(message_id),)
+            ) as cur:
+                row = await cur.fetchone()
+                if row:
+                    log_id = row["id"]
+                    await self.db.mark_message_deleted(log_id)
+                    logger.debug("Marked log entry %s as deleted", log_id)
         except discord.Forbidden:
             logger.warning(
                 "Missing permissions to delete message %s in channel %s",
@@ -176,8 +196,18 @@ def create_bot(settings: Settings) -> ChadBot:
             is_admin=is_admin,
         )
         
-        # Send the response
-        await interaction.followup.send(result.reply)
+        # Send the response and capture the actual message ID
+        response_message = await interaction.followup.send(result.reply)
+        
+        # Update the database with the actual Discord message ID for better tracking
+        if result.log_id and response_message:
+            await db.update_discord_message_id(result.log_id, str(response_message.id))
+            logger.info(
+                "Stored bot response message ID %s for log entry %s",
+                response_message.id,
+                result.log_id
+            )
+        
         logger.info("Handled /ask from %s (admin: %s)", interaction.user.id, is_admin)
 
     return bot
