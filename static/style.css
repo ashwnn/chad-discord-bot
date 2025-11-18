@@ -1,5 +1,5 @@
 /* ================================================================================
-STYLE-GUIDE.MD TOKENS (LIGHT & DARK MODE)
+STYLE-GUIDE.MD TOKENS (LIGHT MODE)
 ================================================================================
 */
 :root {
@@ -114,50 +114,6 @@ STYLE-GUIDE.MD TOKENS (LIGHT & DARK MODE)
     0 2px 5px rgba(0, 0, 0, 0.04);
   --shadow-soft: 0 4px 12px 0 rgba(0, 0, 0, 0.03);
   --shadow-form: 0 1px 1px rgba(0, 0, 0, 0.04);
-}
-
-html.dark {
-  /* Semantic Tokens: Dark Mode (from style-guide.md) */
-  --color-border-base: rgb(var(--color-gray-700) / 1);
-  --color-border-focus: rgb(var(--color-blue-600) / 1);
-  --color-border-focus-danger: rgb(var(--color-red-600) / 1);
-  --color-border-interactive: rgb(var(--color-gray-600) / 1);
-  --color-border-interactive-hover: rgb(var(--color-gray-500) / 1);
-  --color-text-base: rgb(var(--color-gray-100) / 1);
-  --color-text-muted: rgb(var(--color-gray-400) / 1);
-  --color-text-disabled: rgb(var(--color-gray-600) / 1);
-  --color-text-primary: rgb(var(--color-blue-300) / 1);
-  --color-text-success: rgb(var(--color-green-300) / 1);
-  --color-text-warning: rgb(var(--color-yellow-300) / 1);
-  --color-text-danger: rgb(var(--color-red-300) / 1);
-  --color-outline-focus: rgb(var(--color-blue-700) / 1);
-  --color-outline-focus-warning: rgb(var(--color-yellow-600) / 1);
-  --color-outline-focus-danger: rgb(var(--color-red-700) / 1);
-  --color-bg-base: rgb(var(--color-gray-900) / 1);
-  --color-bg-app: rgb(var(--color-gray-1000) / 1);
-  --color-bg-menu-item-hover: rgb(var(--color-gray-700) / 1);
-  --color-codemirror-background: rgb(var(--color-gray-900) / 1);
-  --color-codemirror-border: rgb(var(--color-gray-600) / 1);
-
-  /* Shadows: Dark Mode (from style-guide.md) */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.15);
-  --shadow-base: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.3);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3),
-    0 4px 6px -4px rgb(0 0 0 / 0.3);
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.3),
-    0 8px 10px -6px rgb(0 0 0 / 0.3);
-  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.8);
-  --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.15);
-  --shadow-popover: 0 0 0 1px rgb(var(--color-gray-700) / 1),
-    0 15px 35px 0 rgba(0, 0, 0, 0.2), 0 5px 15px 0 rgba(0, 0, 0, 0.18);
-  --shadow-dialog: 0 10px 40px rgba(0, 0, 0, 0.22),
-    0 0 16px rgba(0, 0, 0, 0.18);
-  --shadow-button: 0 1px 1px rgba(0, 0, 0, 0.14);
-  --shadow-tooltip: 0 0 0 1px rgb(var(--color-gray-700) / 1),
-    0 2px 5px rgba(0, 0, 0, 0.14);
-  --shadow-soft: 0 4px 12px 0 rgba(0, 0, 0, 0.13);
-  --shadow-form: 0 1px 1px rgba(0, 0, 0, 0.14);
 }
 
 /* ================================================================================
@@ -728,10 +684,6 @@ BUTTONS
   box-shadow: var(--shadow-none);
 }
 
-html.dark .btn:disabled {
-  opacity: 0.4; /* Guide default */
-}
-
 .btn.secondary {
   background: var(--color-bg-base);
   color: var(--color-text-base);
@@ -862,12 +814,6 @@ select:disabled {
   color: var(--color-text-disabled);
   cursor: not-allowed;
   opacity: 0.75;
-}
-
-html.dark input:disabled,
-html.dark textarea:disabled,
-html.dark select:disabled {
-  opacity: 0.4;
 }
 
 textarea {
@@ -1182,14 +1128,6 @@ UTILITY CLASSES
   border-color: rgb(var(--color-blue-500) / 1);
 }
 
-html.dark .bg-blue-0 {
-  background: rgb(var(--color-blue-900) / 1);
-}
-
-html.dark .text-blue-800 {
-  color: rgb(var(--color-blue-200) / 1);
-}
-
 /* Accessibility */
 .sr-only {
   position: absolute;
@@ -1501,10 +1439,6 @@ PAGE-SPECIFIC COMPONENTS
   background: rgb(var(--color-green-0) / 1);
 }
 
-html.dark .detail-text.bot-reply {
-  background: rgb(var(--color-green-900) / 1);
-}
-
 .detail-list {
   margin: 0;
   padding: 0;
@@ -1598,11 +1532,6 @@ html.dark .detail-text.bot-reply {
   font-size: 0.875rem; /* 14px */
   border-radius: 0.5rem; /* 8px */
   margin: 0;
-}
-
-html.dark .help-text {
-  background: rgb(var(--color-blue-900) / 1);
-  color: rgb(var(--color-blue-200) / 1);
 }
 
 /* Additional table styles */
