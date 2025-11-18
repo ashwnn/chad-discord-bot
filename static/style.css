@@ -880,11 +880,12 @@ textarea {
   display: inline-flex;
   align-items: center;
   cursor: pointer;
+  gap: 0.5rem; /* 8px */
 }
 
 .toggle input[type="checkbox"] {
   width: auto;
-  margin-right: 0.5rem; /* 8px */
+  margin-right: 0;
   cursor: pointer;
 }
 
@@ -893,6 +894,7 @@ textarea {
   display: inline-block;
   width: 2.5rem; /* 40px (from guide) */
   height: 1.25rem; /* 20px (from guide) */
+  flex-shrink: 0;
 }
 
 .toggle-switch input {
@@ -909,7 +911,7 @@ textarea {
   right: 0;
   bottom: 0;
   background: var(--color-border-interactive);
-  transition: 0.2s;
+  transition: background 0.2s, box-shadow 0.2s;
   border-radius: 9999px; /* 24px -> pill */
 }
 
@@ -921,15 +923,16 @@ textarea {
   left: 0.1875rem; /* 3px (from guide) */
   bottom: 0.1875rem; /* 3px (from guide) */
   background: var(--color-white);
-  transition: 0.2s;
+  transition: transform 0.2s;
   border-radius: 50%;
+  box-shadow: var(--shadow-sm);
 }
 
-input:checked + .toggle-slider {
+.toggle-switch input:checked + .toggle-slider {
   background: rgb(var(--color-blue-500) / 1);
 }
 
-input:checked + .toggle-slider:before {
+.toggle-switch input:checked + .toggle-slider:before {
   transform: translateX(1.25rem); /* 20px (40 - 14 - 3 - 3) */
 }
 
