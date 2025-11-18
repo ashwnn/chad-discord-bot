@@ -36,7 +36,7 @@
   <section class="form-section">
     <div class="section-header">
       <h3>Daily Budgets</h3>
-      <p class="section-description">Token and image limits reset daily at midnight UTC</p>
+      <p class="section-description">Token limits reset daily at midnight UTC</p>
     </div>
 
     <div class="grid grid-cols-2">
@@ -151,9 +151,9 @@ document.getElementById("config-form").addEventListener("submit", async (e) => {
   
   // Define which fields should be numeric
   const numericFields = [
-    'ask_window_seconds', 'ask_max_per_window', 'image_window_seconds',
-    'image_max_per_window', 'duplicate_window_seconds', 'user_daily_chat_token_limit',
-    'global_daily_chat_token_limit', 'user_daily_image_limit', 'global_daily_image_limit',
+    'ask_window_seconds', 'ask_max_per_window',
+    'duplicate_window_seconds', 'user_daily_chat_token_limit',
+    'global_daily_chat_token_limit',
     'temperature', 'max_completion_tokens', 'max_prompt_chars'
   ];
   
