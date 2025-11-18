@@ -3,7 +3,7 @@
 
 {% block content %}
 <div class="page-header">
-  <h2>ChadBot - Administrator Dashboard</h2>
+  <h2>Chad Bot Admin</h2>
   <p class="page-subtitle">Configure and manage your Discord guild's bot instance</p>
 </div>
 
@@ -84,7 +84,7 @@
 
   .guilds-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 16px;
   }
 
@@ -97,27 +97,25 @@
   .guild-card {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    padding: 28px 16px 16px; /* extra top padding for delete button */
+    align-items: stretch;
+    gap: 0;
+    padding: 0;
     background: white;
-    border: 2px solid var(--color-border-base);
-    border-radius: 12px;
+    border: 1px solid var(--color-border-base);
+    border-radius: 8px;
     text-decoration: none;
     color: inherit;
-    transition: all 0.2s ease;
-    /* cursor moved to link only */
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+    cursor: pointer;
     flex: 1;
-    position: relative;
-    min-height: 150px; /* consistent card heights */
-    overflow: visible; /* allow delete button to sit outside normal flow if needed */
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
 
   .guild-card:hover {
-    /* Slight lift effect remains for the whole card */
     border-color: var(--color-border-base);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-    transform: translateY(0);
+    box-shadow: var(--shadow-md);
   }
 
   .guild-card-link {
@@ -129,8 +127,12 @@
     color: inherit;
     flex: 1;
     width: 100%;
-    cursor: pointer; /* only link should use pointer cursor */
-    padding-right: 8px; /* avoid overlapping with delete button */
+    padding: 20px 16px;
+    transition: background 0.2s ease;
+  }
+
+  .guild-card-link:hover {
+    background: var(--color-bg-menu-item-hover);
   }
 
   .guild-icon {
@@ -175,35 +177,20 @@
   }
 
   .btn-delete-guild {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    background: transparent;
-    border: 1px solid transparent;
-    color: var(--color-text-danger);
-    padding: 6px;
-    font-size: 0.85rem;
-    line-height: 1;
-    min-width: 36px;
-    height: 36px;
-    border-radius: 9999px; /* pill/circle */
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 5; /* ensure it's above the link */
-    transition: background 0.12s ease, border-color 0.12s ease;
+    margin: 0;
+    background: var(--color-text-danger);
+    border-color: var(--color-text-danger);
+    padding: 10px 12px;
+    font-size: 0.8rem;
+    width: 100%;
+    border-radius: 0;
+    border-top: 1px solid var(--color-border-base);
   }
 
-  .btn-delete-guild:hover,
-  .btn-delete-guild:focus {
-    background: rgba(220, 38, 38, 0.08);
-    border-color: rgba(220, 38, 38, 0.16);
-    outline: none;
-  }
-
-  .btn-delete-guild:active {
-    transform: scale(0.98);
+  .btn-delete-guild:hover {
+    background: #b91c1c;
+    border-color: #b91c1c;
+    border-top-color: #b91c1c;
   }
 
   .guild-list {
