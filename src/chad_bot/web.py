@@ -254,10 +254,19 @@ def create_app(settings: Settings) -> FastAPI:
         return yaml_config.get("bot_settings", {})
 
     async def _send_discord_message(channel_id: str, content: str, mention_id: Optional[str] = None, image_url: Optional[str] = None):
+        """Send a message to Discord channel.
+        
+        Returns:
+            dict with response data if successful
+            None if failed (with exception logged)
+        """
         try:
-            await discord_api.send_message(channel_id=channel_id, content=content, mention_user_id=mention_id, embed_url=image_url)
+            result = await discord_api.send_message(channel_id=channel_id, content=content, mention_user_id=mention_id, embed_url=image_url)
+            logger.info("Successfully sent message to channel %s", channel_id)
+            return result
         except Exception as exc:  # noqa: BLE001
-            logger.exception("Could not send Discord message: %s", exc)
+            logger.exception("Could not send Discord message to channel %s: %s", channel_id, exc)
+            return None
 
     async def _process_grok(message: Dict[str, Any]) -> Dict[str, Any]:
         cfg = await db.get_guild_config(message["guild_id"])
@@ -300,11 +309,24 @@ def create_app(settings: Settings) -> FastAPI:
                 total_tokens=usage.get("total_tokens"),
                 estimated_cost_usd=(prompt_tokens / 1_000_000.0 * processor.prompt_price_per_m_token + completion_tokens / 1_000_000.0 * processor.completion_price_per_m_token) if (prompt_tokens or completion_tokens) else None,
             )
-            await _send_discord_message(
+            
+            # Send Discord message and track result
+            send_result = await _send_discord_message(
                 channel_id=message["channel_id"],
                 content=formatted_content,
                 mention_id=message["user_id"],
             )
+            
+            if send_result is None:
+                # Message failed to send to Discord, update status to reflect this
+                await db.update_message_status(
+                    message["id"],
+                    status="approved_grok_send_failed",
+                    error_code="discord_send_error",
+                    error_detail="Failed to send approved message to Discord channel",
+                )
+                raise HTTPException(status_code=502, detail="Failed to send message to Discord channel")
+            
             return {"status": "approved_grok", "reply": formatted_content}
         
         # Image generation has been removed
@@ -328,11 +350,20 @@ def create_app(settings: Settings) -> FastAPI:
                 decision="manual",
                 manual_reply_content=manual_text,
             )
-            await _send_discord_message(
+            send_result = await _send_discord_message(
                 channel_id=message["channel_id"],
                 content=formatted_manual,
                 mention_id=message["user_id"],
             )
+            if send_result is None:
+                # Message failed to send to Discord, update status to reflect this
+                await db.update_message_status(
+                    message_id,
+                    status="approved_manual_send_failed",
+                    error_code="discord_send_error",
+                    error_detail="Failed to send approved message to Discord channel",
+                )
+                raise HTTPException(status_code=502, detail="Failed to send message to Discord channel")
             return {"status": "approved_manual", "reply": formatted_manual}
         if payload.decision == "reject":
             reply_text = payload.reason or yaml_config.get_message("rejection_default")
@@ -343,11 +374,20 @@ def create_app(settings: Settings) -> FastAPI:
                 decision="reject",
                 error_detail=payload.reason,
             )
-            await _send_discord_message(
+            send_result = await _send_discord_message(
                 channel_id=message["channel_id"],
                 content=formatted_rejection,
                 mention_id=message["user_id"],
             )
+            if send_result is None:
+                # Message failed to send to Discord, update status to reflect this
+                await db.update_message_status(
+                    message_id,
+                    status="rejected_send_failed",
+                    error_code="discord_send_error",
+                    error_detail="Failed to send rejection message to Discord channel",
+                )
+                raise HTTPException(status_code=502, detail="Failed to send message to Discord channel")
             return {"status": "rejected", "reply": formatted_rejection}
         raise HTTPException(status_code=400, detail="Invalid decision")
 

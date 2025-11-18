@@ -80,6 +80,14 @@ class ChadBot(commands.Bot):
         if not is_admin:
             is_admin = await self.db.is_admin(user_id, guild_id)
         
+        # Check admin_user_ids config field
+        if not is_admin:
+            config = await self.db.get_guild_config(guild_id)
+            if config.admin_user_ids:
+                admin_ids = [uid.strip() for uid in config.admin_user_ids.split(",") if uid.strip()]
+                if user_id in admin_ids:
+                    is_admin = True
+        
         if not is_admin:
             return
         
@@ -149,10 +157,21 @@ def create_bot(settings: Settings) -> ChadBot:
         
         # Check if user is admin
         is_admin = False
+        user_id = str(interaction.user.id)
+        
+        # Check Discord permissions first
         if interaction.user.guild_permissions and (interaction.user.guild_permissions.administrator or interaction.user.guild_permissions.manage_guild):
             is_admin = True
+        # Check admin_users table
+        elif await db.is_admin(user_id, guild_id):
+            is_admin = True
+        # Check admin_user_ids config field
         else:
-            is_admin = await db.is_admin(str(interaction.user.id), guild_id)
+            config = await db.get_guild_config(guild_id)
+            if config.admin_user_ids:
+                admin_ids = [uid.strip() for uid in config.admin_user_ids.split(",") if uid.strip()]
+                if user_id in admin_ids:
+                    is_admin = True
         
         # Defer response as processing might take time
         await interaction.response.defer()
