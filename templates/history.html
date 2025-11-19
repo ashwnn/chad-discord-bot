@@ -57,42 +57,96 @@
               <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Time</th>
               <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">User</th>
               <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Type</th>
-              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Status</th>
               <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Content</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Status</th>
               <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Cost</th>
+              <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
+                <span class="sr-only">Expand</span>
+              </th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-200 bg-white">
-            {% for item in history %}
-            <tr>
-              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-500 sm:pl-6">{{ item.created_at |
-                truncate(16, True, '') }}</td>
-              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ item.user_id }}</td>
-              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ item.command_type }}</td>
-              <td class="whitespace-nowrap px-3 py-4 text-sm">
-                <span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset
-                  {% if item.status == 'approved_grok' or item.status == 'approved_manual' %}
-                    bg-green-50 text-green-700 ring-green-600/20
-                  {% elif item.status == 'rejected' %}
-                    bg-red-50 text-red-700 ring-red-600/10
-                  {% elif item.status == 'pending_approval' %}
-                    bg-yellow-50 text-yellow-800 ring-yellow-600/20
-                  {% else %}
-                    bg-gray-50 text-gray-600 ring-gray-500/10
-                  {% endif %}
-                ">
-                  {{ item.status }}
-                </span>
-              </td>
-              <td class="px-3 py-4 text-sm text-gray-500 max-w-xs truncate" title="{{ item.user_content }}">
-                {{ item.user_content[:50] }}{% if item.user_content|length > 50 %}...{% endif %}
+            {% for msg in history %}
+            <tr class="hover:bg-gray-50 cursor-pointer transition-colors" onclick="toggleRow('{{ msg.id }}')">
+              <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                {{ msg.timestamp }}
               </td>
               <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                {% if item.estimated_cost_usd %}
-                ${{ "%.5f"|format(item.estimated_cost_usd) }}
+                {{ msg.user_id }}
+              </td>
+              <td class="px-3 py-4 text-sm text-gray-500 max-w-xs truncate">
+                {{ msg.user_content }}
+              </td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                <span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset
+                {% if msg.status == 'pending_approval' %} bg-yellow-50 text-yellow-800 ring-yellow-600/20
+                {% elif 'approved' in msg.status %} bg-green-50 text-green-700 ring-green-600/20
+                {% elif 'rejected' in msg.status %} bg-red-50 text-red-700 ring-red-600/20
+                {% else %} bg-gray-50 text-gray-600 ring-gray-500/10 {% endif %}">
+                  {{ msg.status }}
+                </span>
+              </td>
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                {% if msg.estimated_cost_usd %}
+                ${{ "%.4f"|format(msg.estimated_cost_usd) }}
                 {% else %}
                 -
                 {% endif %}
+              </td>
+              <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                <svg id="icon-{{ msg.id }}"
+                  class="h-5 w-5 text-gray-400 transform transition-transform duration-200 inline-block"
+                  viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd"
+                    d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                    clip-rule="evenodd" />
+                </svg>
+              </td>
+            </tr>
+            <!-- Expanded Details Row -->
+            <tr id="row-{{ msg.id }}" class="hidden bg-gray-50">
+              <td colspan="6" class="px-4 py-4 sm:px-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <h4 class="font-semibold text-gray-900 mb-2">Request Details</h4>
+                    <div class="bg-white p-3 rounded-md border border-gray-200 shadow-sm">
+                      <p class="text-gray-700 whitespace-pre-wrap">{{ msg.user_content }}</p>
+                    </div>
+                    <div class="mt-2 text-xs text-gray-500">
+                      <p>Command Type: <span class="font-medium">{{ msg.command_type }}</span></p>
+                      <p>Channel ID: {{ msg.channel_id }}</p>
+                      <p>Discord Message ID: {{ msg.discord_message_id }}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 class="font-semibold text-gray-900 mb-2">Response & Usage</h4>
+                    <div class="bg-white p-3 rounded-md border border-gray-200 shadow-sm mb-2">
+                      {% if msg.grok_response_content %}
+                      <p class="text-gray-700 whitespace-pre-wrap">{{ msg.grok_response_content }}</p>
+                      {% elif msg.manual_reply_content %}
+                      <p class="text-gray-700 whitespace-pre-wrap"><span class="text-blue-600 font-medium">[Manual
+                          Reply]</span> {{ msg.manual_reply_content }}</p>
+                      {% elif msg.error_detail %}
+                      <p class="text-red-600 whitespace-pre-wrap"><span class="font-medium">[Error/Rejection]</span> {{
+                        msg.error_detail }}</p>
+                      {% else %}
+                      <p class="text-gray-400 italic">No response content available.</p>
+                      {% endif %}
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-xs text-gray-500">
+                      <div>
+                        <p>Prompt Tokens: <span class="font-medium">{{ msg.prompt_tokens or 0 }}</span></p>
+                        <p>Completion Tokens: <span class="font-medium">{{ msg.completion_tokens or 0 }}</span></p>
+                        <p>Total Tokens: <span class="font-medium">{{ msg.total_tokens or 0 }}</span></p>
+                      </div>
+                      <div>
+                        <p>Cost: <span class="font-medium text-green-600">${{ "%.6f"|format(msg.estimated_cost_usd or 0)
+                            }}</span></p>
+                        <p>Decision: <span class="font-medium">{{ msg.decision or '-' }}</span></p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </td>
             </tr>
             {% endfor %}
@@ -101,5 +155,19 @@
       </div>
     </div>
   </div>
-</div>
-{% endblock %}
+
+  <script>
+    function toggleRow(id) {
+      const row = document.getElementById(`row-${id}`);
+      const icon = document.getElementById(`icon-${id}`);
+
+      if (row.classList.contains('hidden')) {
+        row.classList.remove('hidden');
+        icon.classList.add('rotate-180');
+      } else {
+        row.classList.add('hidden');
+        icon.classList.remove('rotate-180');
+      }
+    }
+  </script>
+  {% endblock %}
