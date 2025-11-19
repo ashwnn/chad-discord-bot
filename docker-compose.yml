@@ -50,4 +50,4 @@ services:
 
 networks:
   apps:
-    driver: bridge
+    external: true
