@@ -214,26 +214,64 @@ class DiscordApiClient:
             logger.error("Error fetching bot member for guild %s: %s", guild_id, exc)
             return None
 
-    async def check_fun_permissions(self, guild_id: str) -> bool:
-        """Check if bot has permissions for Fun features (Admin OR (Timeout AND Nickname))."""
+    async def get_channel(self, channel_id: str) -> Optional[Dict[str, Any]]:
+        """Fetch channel information."""
+        if not self.token:
+            return None
+            
+        client = await self._get_client()
+        try:
+            resp = await client.get(
+                f"/channels/{channel_id}",
+                headers={"Authorization": f"Bot {self.token}"},
+            )
+            if resp.status_code >= 400:
+                logger.error("Failed fetching channel %s: %s", channel_id, resp.status_code)
+                return None
+            resp.raise_for_status()
+            return resp.json()
+        except Exception as exc:
+            logger.error("Error fetching channel %s: %s", channel_id, exc)
+            return None
+
+    def _compute_base_permissions(self, member: Dict[str, Any], roles: list) -> int:
+        """Compute base permissions for a member in a guild."""
+        # Permissions constants
+        ADMINISTRATOR = 1 << 3
+        
+        # Create role map for easy lookup
+        role_map = {r["id"]: int(r["permissions"]) for r in roles}
+        guild_id = member.get("guild_id") # Note: member object from API might not have guild_id if not enriched, but we usually pass guild_id to context
+        
+        permissions = 0
+        
+        # Get guild_id from roles if possible (usually @everyone role has same ID as guild)
+        # But here we need to be careful. The caller should ensure we have the right context.
+        # In get_guild_roles, we get all roles. The one with id == guild_id is @everyone.
+        
+        # Find @everyone role (id == guild_id)
+        # We don't have guild_id explicitly here, but we can infer or pass it.
+        # Actually, simpler: The caller passes guild_id.
+        pass
+        
+    async def calculate_permissions(self, guild_id: str, channel_id: Optional[str] = None) -> int:
+        """Calculate permissions for the bot in a guild (and optionally a channel)."""
         roles = await self.get_guild_roles(guild_id)
         member = await self.get_bot_member(guild_id)
         
         if not roles or not member:
-            return False
+            return 0
             
         # Permissions constants
         ADMINISTRATOR = 1 << 3
-        MANAGE_NICKNAMES = 1 << 27
-        MODERATE_MEMBERS = 1 << 40
         
-        # Create role map for easy lookup
+        # Create role map
         role_map = {r["id"]: int(r["permissions"]) for r in roles}
         
-        # Calculate permissions
+        # 1. Base permissions
         permissions = 0
         
-        # Add @everyone permissions (role_id == guild_id)
+        # Add @everyone permissions
         if guild_id in role_map:
             permissions |= role_map[guild_id]
             
@@ -241,12 +279,80 @@ class DiscordApiClient:
         for role_id in member.get("roles", []):
             if role_id in role_map:
                 permissions |= role_map[role_id]
+        
+        # If Administrator, return all permissions (roughly)
+        # Discord says Administrator overrides everything EXCEPT channel-specific overrides? 
+        # No, Administrator overrides ALL channel overrides.
+        if permissions & ADMINISTRATOR:
+            return -1 # All permissions (conceptually)
+            
+        # If no channel provided, return guild permissions
+        if not channel_id:
+            return permissions
+            
+        # 2. Channel Overwrites
+        channel = await self.get_channel(channel_id)
+        if not channel:
+            return permissions
+            
+        overwrites = channel.get("permission_overwrites", [])
+        
+        # Apply @everyone overwrite
+        everyone_allow = 0
+        everyone_deny = 0
+        for ow in overwrites:
+            if ow["id"] == guild_id: # @everyone
+                everyone_allow = int(ow["allow"])
+                everyone_deny = int(ow["deny"])
+                break
+        
+        permissions &= ~everyone_deny
+        permissions |= everyone_allow
+        
+        # Apply role overwrites
+        role_allow = 0
+        role_deny = 0
+        member_roles = set(member.get("roles", []))
+        
+        for ow in overwrites:
+            if ow["type"] == 0 and ow["id"] in member_roles: # Role overwrite
+                role_allow |= int(ow["allow"])
+                role_deny |= int(ow["deny"])
                 
-        # Check Administrator
+        permissions &= ~role_deny
+        permissions |= role_allow
+        
+        # Apply member overwrite
+        member_allow = 0
+        member_deny = 0
+        user_id = member["user"]["id"]
+        
+        for ow in overwrites:
+            if ow["type"] == 1 and ow["id"] == user_id: # Member overwrite
+                member_allow = int(ow["allow"])
+                member_deny = int(ow["deny"])
+                break
+                
+        permissions &= ~member_deny
+        permissions |= member_allow
+        
+        return permissions
+
+    async def check_fun_permissions(self, guild_id: str) -> bool:
+        """Check if bot has permissions for Fun features (Admin OR (Timeout AND Nickname))."""
+        permissions = await self.calculate_permissions(guild_id)
+        
+        # Permissions constants
+        ADMINISTRATOR = 1 << 3
+        MANAGE_NICKNAMES = 1 << 27
+        MODERATE_MEMBERS = 1 << 40
+        
+        if permissions == -1: # Administrator
+            return True
+            
         if permissions & ADMINISTRATOR:
             return True
             
-        # Check specific permissions
         has_timeout = bool(permissions & MODERATE_MEMBERS)
         has_nickname = bool(permissions & MANAGE_NICKNAMES)
         

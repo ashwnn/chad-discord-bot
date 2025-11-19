@@ -220,6 +220,18 @@ def create_app(settings: Settings) -> FastAPI:
 
     @app.post("/api/guilds/{guild_id}/config")
     async def update_config(guild_id: str, payload: ConfigUpdate):
+        # Validate admin_user_ids if present
+        if payload.admin_user_ids is not None:
+            # Allow empty string
+            if payload.admin_user_ids.strip():
+                for uid in payload.admin_user_ids.split(","):
+                    clean_uid = uid.strip()
+                    if clean_uid and not clean_uid.isdigit():
+                        raise HTTPException(
+                            status_code=400, 
+                            detail=f"Invalid Admin ID: '{clean_uid}'. IDs must be numeric."
+                        )
+
         current = await db.get_guild_config(guild_id)
         update_data = current.__dict__
         for key, value in payload.model_dump(exclude_none=True).items():

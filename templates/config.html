@@ -52,6 +52,19 @@
             </div>
           </div>
 
+          <div class="col-span-full">
+            <label for="admin_user_ids" class="block text-sm font-medium leading-6 text-gray-900">Administrator User
+              IDs</label>
+            <div class="mt-2">
+              <input type="text" name="admin_user_ids" id="admin_user_ids" value="{{ config.admin_user_ids }}"
+                placeholder="e.g., 123456789012345678, 987654321098765432" pattern="^[\d,\s]*$"
+                title="Only numbers, commas, and spaces are allowed"
+                class="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brand-600 sm:text-sm sm:leading-6 invalid:border-red-500 invalid:text-red-600 focus:invalid:border-red-500 focus:invalid:ring-red-500">
+            </div>
+            <p class="mt-2 text-sm leading-6 text-gray-600">Comma-separated Discord user IDs. These users can delete bot
+              replies with ❌ reaction and have admin privileges.</p>
+          </div>
+
         </div>
       </div>
     </div>
