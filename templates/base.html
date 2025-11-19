@@ -1,64 +1,129 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full bg-gray-50">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}Chad Bot Admin{% endblock %}</title>
-  <link rel="stylesheet" href="/static/style.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              200: '#bae6fd',
+              300: '#7dd3fc',
+              400: '#38bdf8',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+              800: '#075985',
+              900: '#0c4a6e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom scrollbar for Webkit */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    [x-cloak] { display: none !important; }
+  </style>
+  <!-- Alpine.js for interactivity -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
   {% block extra_head %}{% endblock %}
 </head>
-<body>
-  <div class="page-wrapper">
-    <header class="main-header">
-      <div class="header-left">
-        <a href="/" class="brand-link" aria-label="Go to dashboard">
-          <img src="/static/chad.png" alt="Chad Bot Logo" class="brand-logo">
-        </a>
-        {% if guild_id %}
-        <span class="guild-badge">Guild: {{ guild_id }}</span>
-        {% endif %}
-      </div>
-      <button class="nav-toggle" onclick="toggleNav()" title="Toggle menu">☰</button>
-      <nav id="main-nav" class="main-nav">
-        {% if guild_id %}
-        <a href="/" class="nav-link">All Guilds</a>
-        <a href="/guilds/{{ guild_id }}" class="nav-link {% if page == 'dashboard' %}active{% endif %}">
-          Overview
-        </a>
-        <a href="/guilds/{{ guild_id }}/config" class="nav-link {% if page == 'config' %}active{% endif %}">
-          Configuration
-        </a>
-        <a href="/guilds/{{ guild_id }}/queue" class="nav-link {% if page == 'queue' %}active{% endif %}">
-          Approval Queue
-        </a>
-        <a href="/guilds/{{ guild_id }}/history" class="nav-link {% if page == 'history' %}active{% endif %}">
-          History
-        </a>
-        <a href="/guilds/{{ guild_id }}/analytics" class="nav-link {% if page == 'analytics' %}active{% endif %}">
-          Analytics
-        </a>
-        {% else %}
-        <a href="/" class="nav-link {% if page == 'dashboard' %}active{% endif %}">Guilds</a>
-        <a href="/messages" class="nav-link {% if page == 'messages' %}active{% endif %}">Configuration</a>
-        {% endif %}
-      </nav>
-    </header>
+<body class="h-full font-sans text-gray-900 antialiased" x-data="{ sidebarOpen: false }">
+  
+  <!-- Mobile sidebar backdrop -->
+  <div x-show="sidebarOpen" x-transition:enter="transition-opacity ease-linear duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition-opacity ease-linear duration-300" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 bg-gray-900/80 z-40 lg:hidden" @click="sidebarOpen = false" x-cloak></div>
 
-    <main class="main-content">
-      <div class="container">
+  <!-- Mobile sidebar -->
+  <div x-show="sidebarOpen" x-transition:enter="transition ease-in-out duration-300 transform" x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0" x-transition:leave="transition ease-in-out duration-300 transform" x-transition:leave-start="translate-x-0" x-transition:leave-end="-translate-x-full" class="fixed inset-y-0 left-0 z-50 w-72 bg-white px-6 pb-4 overflow-y-auto lg:hidden" x-cloak>
+    <div class="flex h-16 shrink-0 items-center">
+      <img class="h-8 w-auto" src="/static/chad.png" alt="Chad Bot">
+      <span class="ml-3 text-lg font-bold text-gray-900">Chad Bot</span>
+    </div>
+    <nav class="flex flex-1 flex-col">
+      <ul role="list" class="flex flex-1 flex-col gap-y-7">
+        <li>
+          <ul role="list" class="-mx-2 space-y-1">
+            {% include 'nav_items.html' %}
+          </ul>
+        </li>
+      </ul>
+    </nav>
+  </div>
+
+  <!-- Desktop sidebar -->
+  <div class="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
+    <div class="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6 pb-4">
+      <div class="flex h-16 shrink-0 items-center">
+        <img class="h-8 w-auto" src="/static/chad.png" alt="Chad Bot">
+        <span class="ml-3 text-lg font-bold text-gray-900">Chad Bot</span>
+      </div>
+      <nav class="flex flex-1 flex-col">
+        <ul role="list" class="flex flex-1 flex-col gap-y-7">
+          <li>
+            <ul role="list" class="-mx-2 space-y-1">
+              {% include 'nav_items.html' %}
+            </ul>
+          </li>
+          <li class="mt-auto">
+            <div class="text-xs font-semibold leading-6 text-gray-400">v1.0.0</div>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+
+  <div class="lg:pl-72">
+    <div class="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
+      <button type="button" class="-m-2.5 p-2.5 text-gray-700 lg:hidden" @click="sidebarOpen = true">
+        <span class="sr-only">Open sidebar</span>
+        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+        </svg>
+      </button>
+
+      <div class="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
+        <div class="flex flex-1 items-center">
+            {% if guild_id %}
+            <span class="inline-flex items-center rounded-md bg-brand-50 px-2 py-1 text-xs font-medium text-brand-700 ring-1 ring-inset ring-brand-700/10">Guild: {{ guild_id }}</span>
+            {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <main class="py-10">
+      <div class="px-4 sm:px-6 lg:px-8">
         {% block content %}{% endblock %}
       </div>
     </main>
   </div>
 
-  <script>
-    function toggleNav() {
-      const nav = document.getElementById("main-nav");
-      if (nav) {
-        nav.classList.toggle("open");
-      }
-    }
-  </script>
   {% block extra_scripts %}{% endblock %}
 </body>
 </html>
