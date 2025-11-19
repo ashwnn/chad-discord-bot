@@ -1,61 +1,84 @@
 {% extends "base.html" %}
-{% block title %}Approval Queue - Grok Discord Bot Admin{% endblock %}
+{% block title %}Approval Queue - Chad Bot{% endblock %}
 
 {% block content %}
-<div class="page-header">
-  <h2>Approval Queue</h2>
-  <p class="page-subtitle">Review and approve pending requests</p>
+<div class="md:flex md:items-center md:justify-between mb-8">
+  <div class="min-w-0 flex-1">
+    <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">Approval Queue</h2>
+    <p class="mt-1 text-sm text-gray-500">Review and approve pending requests.</p>
+  </div>
+  <div class="mt-4 flex md:ml-4 md:mt-0">
+    <span
+      class="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
+      {{ pending | length }} Pending
+    </span>
+  </div>
 </div>
 
 {% if pending | length == 0 %}
-<div class="card empty-state">
-  <p class="muted text-center">No pending approvals</p>
+<div class="text-center rounded-lg border-2 border-dashed border-gray-300 p-12">
+  <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+  <h3 class="mt-2 text-sm font-semibold text-gray-900">No pending approvals</h3>
+  <p class="mt-1 text-sm text-gray-500">You're all caught up!</p>
 </div>
 {% else %}
-<div class="queue-info">
-  <p><strong>{{ pending | length }}</strong> pending request{{ 's' if pending | length != 1 else '' }}</p>
-</div>
-
-<div class="card">
-  <table class="table queue-table">
-    <thead>
+<div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+  <table class="min-w-full divide-y divide-gray-300">
+    <thead class="bg-gray-50">
       <tr>
-        <th>Time</th>
-        <th>User</th>
-        <th>Type</th>
-        <th>Preview</th>
-        <th>Actions</th>
+        <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Time</th>
+        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">User</th>
+        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Type</th>
+        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Preview</th>
+        <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
+          <span class="sr-only">Actions</span>
+        </th>
       </tr>
     </thead>
-    <tbody>
+    <tbody class="divide-y divide-gray-200 bg-white">
       {% for item in pending %}
-      <tr class="queue-row" data-id="{{ item.id }}">
-        <td class="text-sm muted">{{ item.created_at | truncate(16, True, '') }}</td>
-        <td class="text-sm">{{ item.user_id }}</td>
-        <td>
+      <tr id="row-{{ item.id }}">
+        <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-500 sm:pl-6">{{ item.created_at | truncate(16,
+          True, '') }}</td>
+        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ item.user_id }}</td>
+        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
           {% if item.command_type == 'ask' %}
-          <span class="pill">Chat</span>
+          <span
+            class="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">Chat</span>
           {% else %}
-          <span class="pill">{{ item.command_type }}</span>
+          <span
+            class="inline-flex items-center rounded-md bg-purple-50 px-2 py-1 text-xs font-medium text-purple-700 ring-1 ring-inset ring-purple-700/10">{{
+            item.command_type }}</span>
           {% endif %}
         </td>
-        <td class="text-sm preview-cell">{{ item.user_content[:80] }}</td>
-        <td>
-          <button class="btn-link" onclick="expandItem(this)">Details</button>
+        <td class="px-3 py-4 text-sm text-gray-500 max-w-xs truncate">{{ item.user_content[:80] }}</td>
+        <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+          <button type="button" onclick="toggleDetails({{ item.id }})"
+            class="text-brand-600 hover:text-brand-900">Review</button>
         </td>
       </tr>
-      <tr class="details-row" style="display: none;">
-        <td colspan="5">
-          <div class="details-panel">
-            <div class="request-content">
-              <h4>Full Request</h4>
-              <p class="content-text">{{ item.user_content }}</p>
-            </div>
-            
-            <div class="action-buttons">
-              <button class="btn btn-success" onclick="approve({{ item.id }}, 'grok')">Approve via Grok</button>
-              <button class="btn secondary" onclick="manual({{ item.id }})">Manual Reply</button>
-              <button class="btn danger" onclick="reject({{ item.id }})">Reject</button>
+      <tr id="details-{{ item.id }}" class="hidden bg-gray-50">
+        <td colspan="5" class="px-4 py-4 sm:px-6">
+          <div class="rounded-md bg-white p-4 shadow-sm ring-1 ring-gray-900/5">
+            <h4 class="text-sm font-medium text-gray-900">Full Request</h4>
+            <p class="mt-2 text-sm text-gray-600 whitespace-pre-wrap">{{ item.user_content }}</p>
+
+            <div class="mt-4 flex gap-3 justify-end">
+              <button onclick="approve({{ item.id }}, 'grok', this)"
+                class="inline-flex items-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600 disabled:opacity-50 disabled:cursor-not-allowed">
+                Approve via Grok
+              </button>
+              <button onclick="manual({{ item.id }}, this)"
+                class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                Manual Reply
+              </button>
+              <button onclick="reject({{ item.id }}, this)"
+                class="inline-flex items-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:opacity-50 disabled:cursor-not-allowed">
+                Reject
+              </button>
             </div>
           </div>
         </td>
@@ -67,55 +90,86 @@
 {% endif %}
 
 <script>
-function expandItem(button) {
-  const row = button.closest('tr');
-  const detailsRow = row.nextElementSibling;
-  
-  if (detailsRow && detailsRow.classList.contains('details-row')) {
-    if (detailsRow.style.display === 'none') {
-      detailsRow.style.display = 'table-row';
-      button.textContent = 'Hide';
+  function toggleDetails(id) {
+    const detailsRow = document.getElementById(`details-${id}`);
+    if (detailsRow.classList.contains('hidden')) {
+      detailsRow.classList.remove('hidden');
     } else {
-      detailsRow.style.display = 'none';
-      button.textContent = 'Details';
-    }
-  }
-}
-
-async function approve(id, decision) {
-  const body = { decision };
-  
-  if (decision === "reject") {
-    body.reason = prompt("Reason for rejection (optional):") || undefined;
-  }
-  
-  if (decision === "manual") {
-    body.manual_reply_content = prompt("Enter your manual reply:") || "";
-    if (!body.manual_reply_content) {
-      alert("Manual reply cannot be empty");
-      return;
+      detailsRow.classList.add('hidden');
     }
   }
 
-  try {
-    const res = await fetch(`/api/approvals/${id}`, {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify(body),
-    });
-    
-    if (res.ok) {
-      location.reload();
-    } else {
-      const error = await res.json();
-      alert(`Error: ${error.detail || 'Failed to process approval'}`);
-    }
-  } catch (err) {
-    alert(`Error: ${err.message}`);
-  }
-}
+  async function approve(id, decision, btn) {
+    // Disable all buttons in this row to prevent double-submit
+    const container = btn.closest('.flex');
+    const buttons = container.querySelectorAll('button');
+    buttons.forEach(b => b.disabled = true);
 
-function reject(id) { approve(id, "reject"); }
-function manual(id) { approve(id, "manual"); }
+    const originalText = btn.innerText;
+    btn.innerText = 'Processing...';
+
+    const body = { decision };
+
+    if (decision === "reject") {
+      const reason = prompt("Reason for rejection (optional):");
+      if (reason === null) { // Cancelled
+        buttons.forEach(b => b.disabled = false);
+        btn.innerText = originalText;
+        return;
+      }
+      body.reason = reason || undefined;
+    }
+
+    if (decision === "manual") {
+      const reply = prompt("Enter your manual reply:");
+      if (reply === null) { // Cancelled
+        buttons.forEach(b => b.disabled = false);
+        btn.innerText = originalText;
+        return;
+      }
+      body.manual_reply_content = reply || "";
+      if (!body.manual_reply_content) {
+        alert("Manual reply cannot be empty");
+        buttons.forEach(b => b.disabled = false);
+        btn.innerText = originalText;
+        return;
+      }
+    }
+
+    try {
+      const res = await fetch(`/api/approvals/${id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (res.ok) {
+        // Remove the row from the table smoothly
+        const row = document.getElementById(`row-${id}`);
+        const details = document.getElementById(`details-${id}`);
+        row.remove();
+        details.remove();
+
+        // Update count if possible, or just let it be until refresh
+        // Ideally we check if table is empty and show empty state, but reload is fine if empty
+        const remaining = document.querySelectorAll('tbody tr').length;
+        if (remaining === 0) {
+          location.reload();
+        }
+      } else {
+        const error = await res.json();
+        alert(`Error: ${error.detail || 'Failed to process approval'}`);
+        buttons.forEach(b => b.disabled = false);
+        btn.innerText = originalText;
+      }
+    } catch (err) {
+      alert(`Error: ${err.message}`);
+      buttons.forEach(b => b.disabled = false);
+      btn.innerText = originalText;
+    }
+  }
+
+  function reject(id, btn) { approve(id, "reject", btn); }
+  function manual(id, btn) { approve(id, "manual", btn); }
 </script>
 {% endblock %}
